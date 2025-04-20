@@ -903,7 +903,7 @@ html {
   scroll-behavior: smooth;
 }
 .bg-hero {
-  background-image: url('./assets/hero-bg.svg');
+  background-image: url('./assets/Logo.png'); /* You can replace with your preferred bg */
   background-size: cover;
   background-position: center;
 }
