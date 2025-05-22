@@ -1121,3 +1121,6 @@ html {
     }
   }
 }
+.required-asterisk {
+  color: red;
+}

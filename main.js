@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <p class="text-gray-700">EazyNet does not use cookies directly. However, our website or third-party services like analytics may use cookies to track basic metrics (non-personally identifiable).</p>
 
 <h3 class="text-xl font-semibold mb-2 mt-6">5. Your Rights</h3>
-<p class="text-gray-700">You have the right to access, update, or delete your data. If you have any concerns or requests, email us at <a href="mailto:support@eazynet.app" class="text-primary underline">support@eazynet.app</a>.</p>
+<p class="text-gray-700">You have the right to access, update, or delete your data. If you have any concerns or requests, email us at <a href="mailto:eazynettabmanager@gmail.com" class="text-primary underline">eazynettabmanager@gmail.com</a>.</p>
 
 <h3 class="text-xl font-semibold mb-2 mt-6">6. Data Security</h3>
 <p class="text-gray-700">We take data security seriously and implement safeguards to protect your information. However, no system is 100% secure.</p>
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   
   document.getElementById("contact-us").addEventListener("click", function() {
-    var email = "siwachankit008" + "@" + "gmail.com";
+    var email = "eazynettabmanager" + "@" + "gmail.com";
     window.location.href = "mailto:" + email;
   });
   
