@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="./assets/favicon.png" />
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 </head>
 <body class="bg-white text-gray-900 overflow-x-hidden">
  <!-- Navbar -->
@@ -98,9 +99,10 @@
   </div>
 <div style="height: 2rem;"></div>
   <div class="mt-10">
-    <a href="#pricing" class="inline-block px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition duration-300">
-      Upgrade to Pro
-    </a>
+   <a href="#" id="upgrade-pro-btn" class="inline-block px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition duration-300">
+  Upgrade to Pro
+</a>
+
   </div>
 </section>
 
@@ -125,9 +127,10 @@
   <div style="height: 2rem;"></div>
 
   <!-- Simple Button -->
-  <a href="#pricing" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
-    Upgrade to Pro
-  </a>
+  <a href="#" id="upgrade-pro-btn" class="inline-block px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition duration-300">
+  Upgrade to Pro
+</a>
+
 </section>
 
 <!-- Demo Section -->
@@ -231,8 +234,7 @@
 <script>
     AOS.init({ duration: 1000, easing: 'ease-out', once: true });
 </script>
-  <script>
- </script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script src="main-common.js"></script>
 <script src="main-onboarding.js"></script>
 <script src="https://kit.fontawesome.com/7bc306f971.js" crossorigin="anonymous"></script>
