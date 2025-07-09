@@ -19,23 +19,4 @@
     });
   });
 });
-document.addEventListener("DOMContentLoaded", () => {
-  const upgradeBtn = document.getElementById("upgrade-pro-btn");
-  if (upgradeBtn) {
-    upgradeBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      Toastify({
-        text: "Stay Tuned! Pro version coming soon!",
-        duration: 3000,
-        close: true,
-        gravity: "top",
-        position: "center",
-        backgroundColor: "linear-gradient(to right, #4f46e5, #6366f1)",
-        style: {
-          borderRadius: "10px",
-          fontWeight: "500"
-        }
-      }).showToast();
-    });
-  }
-});
+
