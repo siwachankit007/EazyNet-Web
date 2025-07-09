@@ -68,24 +68,8 @@
 </head>
   <body class="bg-white text-gray-900 overflow-x-hidden">
  <!-- Navbar -->
- <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-    <a href="#" class="flex items-center space-x-3">
-      <img src="./assets/Logo.png" alt="EazyNet Logo" class="h-10 w-auto" />
-      <span class="text-xl font-bold text-gray-800">EazyNet</span>
-    </a>    
-    <nav class="hidden md:flex space-x-6">
-      <a href="#features" class="text-gray-600 hover:text-primary transition duration-300">Features</a>
-      <a href="#pricing" class="text-gray-600 hover:text-primary transition duration-300">Pricing</a>
-      <a href="#testimonials" class="text-gray-600 hover:text-primary transition duration-300">Testimonials</a>
-      <a href="#contact" class="text-gray-600 hover:text-primary transition duration-300">Contact</a>
-    </nav>
-    <a href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb" target="_blank" 
-    rel="noopener noreferrer" class="hidden md:inline-block bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-md transition duration-300">
-      Get EazyNet
-    </a>
-  </div>
-</header>
+   <div id="navbar-placeholder"></div>
+
  <!-- SEO-Optimized Hero Section Start -->
   <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
     <img src="./assets/Logo.png" alt="EazyNet Chrome Tab Manager Logo" class="mx-auto h-16 mb-6" data-aos="zoom-in" />
@@ -340,82 +324,7 @@
     <div id="form-toast" class="fixed top-6 right-6 z-50 hidden px-6 py-4 rounded-xl shadow-lg text-white text-sm font-medium"></div>
   </form>
 </section>
-
-    <!-- Footer -->
-    <!-- Footer Section -->
-<footer class="bg-gray-900 text-white py-10 px-6">
-  <div class="max-w-7xl mx-auto">
-    <!-- Logo and Description -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
-      <div class="flex items-center">
-        <a href="#"class="flex items-center space-x-3">
-        <img src="./assets/Logo.png" alt="EazyNet Logo" class="w-12 h-12 mr-3">
-        <h3 class="text-2xl font-semibold">EazyNet</h3></a>
-      </div>
-    </div>
-
-    <!-- Links and Contact Details -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-      <div class="flex flex-col">
-        <h4 class="font-semibold text-lg text-gray-300 mb-4">Quick Links</h4>
-        <ul class="space-y-2 text-sm text-gray-400">
-          <li><a href="#" class="hover:text-primary transition-colors">Home</a></li>
-          <li><a href="#features" class="hover:text-primary transition-colors">Features</a></li>
-          <li><a href="#pricing" class="hover:text-primary transition-colors">Pricing</a></li>
-          <li><a href="#contact" class="hover:text-primary transition-colors">Contact</a></li>
-        </ul>
-      </div>
-
-      <div class="flex flex-col">
-        <h4 class="font-semibold text-lg text-gray-300 mb-4">Contact Info</h4>
-        <ul class="space-y-2 text-sm text-gray-400">
-          <li><a href="javascript:void(0)" id="contact-us" class="hover:text-primary transition-colors">eazynettabmanager@gmail.com</a></li>
-          <!-- <li><a href="tel:+1234567890" class="hover:text-primary transition-colors">+1 234 567 890</a></li>
-          <li><a href="https://www.google.com/maps" class="hover:text-primary transition-colors">22, Linking Road, NY</a></li> -->
-        </ul>
-      </div>
-
-      <!-- Social Media -->
-      <div class="flex flex-col">
-        <h4 class="font-semibold text-lg text-gray-300 mb-4">Follow Us</h4>
-        <div class="flex space-x-4">
-          <a href="https://x.com/eazynetmanager" target="_blank" 
-          rel="noopener noreferrer" class="hover:text-primary transition-colors"><i class="fab fa-x"></i></a>
-          <a href="https://www.youtube.com/@EazyNetTabManager" target="_blank" 
-          rel="noopener noreferrer" class="hover:text-primary transition-colors"><i class="fab fa-youtube"></i></a>
-                    <a href="https://www.linkedin.com/company/eazynetapp" target="_blank" 
-          rel="noopener noreferrer" class="hover:text-primary transition-colors"><i class="fab fa-linkedin"></i></a>
-          <a href="https://www.reddit.com/user/These-Street-6034/" target="_blank" 
-          rel="noopener noreferrer" class="hover:text-primary transition-colors"><i class="fab fa-reddit"></i></a>
-          <!-- <a href="https://instagram.com" class="hover:text-primary transition-colors"><i class="fab fa-instagram"></i></a> -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Legal and Copyright Info -->
-    <div class="border-t border-gray-700 pt-6 mt-6 text-center text-sm text-gray-400">
-      <p>&copy; 2025 EazyNet. All Rights Reserved.</p>
-      <a href="#privacy" class="policy-link hover:text-primary transition-colors" data-type="privacy">Privacy Policy</a>
-      |
-      <a href="#terms" class="policy-link hover:text-primary transition-colors" data-type="terms">Terms & Conditions</a>
-    </div>
-  </div>
-</footer>
-<footer class="bg-slate-100 py-4 text-center text-sm text-gray-600">
-  🙋 Got ideas or feedback? <a href="https://tally.so/r/3XkNpg" target="_blank" class="text-blue-600 underline hover:text-blue-800">Tell us here</a>
-</footer>
-
-<!-- Policy Modal -->
-<div id="policy-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white max-w-3xl mx-auto rounded-xl shadow-lg p-8 relative overflow-y-auto max-h-[80vh]">
-    <!-- Close Button -->
-    <button id="close-modal" class="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl leading-none">&times;</button>
-    <!-- Modal Content -->
-    <div id="modal-content">
-      <!-- Content is injected here -->
-    </div>
-  </div>
-</div>
+  <div id="footer-placeholder"></div>
 
     <script>
       AOS.init({
@@ -426,6 +335,7 @@
     </script>
   <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script src="main.js"></script>
+<script src="main-common.js"></script>
+<script src="main-landing.js"></script>
   </body>
   </html>
