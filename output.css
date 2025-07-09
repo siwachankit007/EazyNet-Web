@@ -1124,3 +1124,6 @@ html {
 .required-asterisk {
   color: red;
 }
+#mobile-nav {
+  transition: all 0.3s ease;
+}

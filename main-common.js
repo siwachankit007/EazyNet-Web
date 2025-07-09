@@ -6,12 +6,20 @@ async function loadComponent(id, path, callback) {
     const container = document.getElementById(id);
     if (container) {
       container.innerHTML = html;
-      if (typeof callback === 'function') callback();
+
+      // Wait a tick for DOM update
+      setTimeout(() => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      }, 0);
     }
   } catch (err) {
     console.error(`Failed to load ${path}`, err);
   }
 }
+
+
 
 // Footer modal logic after footer loads
 function setupFooterModalLogic() {
@@ -120,16 +128,16 @@ function setupFooterModalLogic() {
 
 // Load components after DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  loadComponent("navbar-placeholder", "./components/navbar.html");
+  loadComponent("navbar-placeholder", "./components/navbar.html", attachNavbarEvents);
   loadComponent("footer-placeholder", "./components/footer.html", setupFooterModalLogic);
 
-  // Optional: Handle "Contact Us" click safely
   document.addEventListener("click", (e) => {
     if (e.target.id === "contact-us") {
       window.location.href = "mailto:eazynettabmanager@gmail.com";
     }
   });
 });
+
 document.addEventListener("DOMContentLoaded", () => {
   const upgradeBtn = document.getElementById("upgrade-pro-btn");
   if (upgradeBtn) {
@@ -150,3 +158,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+function attachNavbarEvents() {
+  const toggleBtn = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  if (toggleBtn && mobileMenu) {
+    toggleBtn.addEventListener('click', () => {
+        console.log('Toggle button clicked');
+      mobileMenu.classList.toggle('hidden');
+    });
+  } else {
+    console.warn('Navbar elements not found');
+  }
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#mobile-menu a')) {
+    document.getElementById('mobile-menu')?.classList.add('hidden');
+  }
+});
+
+
