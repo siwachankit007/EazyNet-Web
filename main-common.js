@@ -139,9 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const upgradeBtn = document.getElementById("upgrade-pro-btn");
-  if (upgradeBtn) {
-    upgradeBtn.addEventListener("click", (e) => {
+  const upgradeBtns = document.querySelectorAll(".upgrade-pro-btn");
+  upgradeBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      console.log("Upgrade button clicked");
       e.preventDefault();
       Toastify({
         text: "Stay Tuned! Pro version coming soon!",
@@ -156,8 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }).showToast();
     });
-  }
+  });
 });
+
 function attachNavbarEvents() {
   const toggleBtn = document.getElementById('menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
