@@ -1,0 +1,235 @@
+
+/* Core container and card effect */
+.container {
+  position: relative;
+  max-width: 850px;
+  width: 100%;
+  background: #fff;
+  margin: 20px auto;
+  padding: 40px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  perspective: 2700px;
+}
+
+#flip {
+  display: none;
+}
+
+.cover {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  width: 50%;
+  z-index: 98;
+  transition: all 1s ease;
+  transform-origin: left;
+  transform-style: preserve-3d;
+}
+
+#flip:checked ~ .cover {
+  transform: rotateY(-180deg);
+}
+
+.cover .front,
+.cover .back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  backface-visibility: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1); /* glass effect */
+
+}
+
+.cover .back {
+  transform: rotateY(180deg);
+}
+.cover .front:not(.active),
+.cover .back:not(.active) {
+  background: rgba(0, 0, 0, 0.25);
+}
+.cover .text span {
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover .text {
+  position: absolute;
+  z-index: 10;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  padding: 0 20px;
+}
+
+.cover .text .text-1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.cover .text .text-2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+}
+
+
+/* Forms styling */
+.forms {
+  height: 100%;
+  width: 100%;
+  z-index: 99;
+  background: white;
+}
+
+.form-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.login-form,
+.signup-form {
+  width: calc(100% / 2 - 20px);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.input-box {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.input-box i {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  color: #6d28d9;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 10px 10px 10px 35px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.button input {
+  width: 100%;
+  background: #6d28d9;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.or-divider {
+  text-align: center;
+  margin: 20px 0;
+  color: #aaa;
+  position: relative;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ccc;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.google-btn img {
+  width: 20px;
+  height: 20px;
+}
+.auth-header {
+  text-align: center;
+  color: white;
+}
+
+.logo {
+  height: 64px;
+  margin-bottom: 10px;
+}
+
+.heading {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+#loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: linear-gradient(to right, #3b82f6cc, #4f46e5cc, #6d28d9cc);
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loader-circle {
+  width: 200px;
+  height: 200px;
+  box-shadow: inset 2px 0 0 white, -2px 0 0 white;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

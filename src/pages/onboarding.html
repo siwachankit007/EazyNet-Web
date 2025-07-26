@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EazyNet Onboarding</title>
+  <link href="../styles/output.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png" />
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+</head>
+<body class="bg-white text-gray-900 overflow-x-hidden">
+ <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+<!-- Onboarding Hero Section -->
+<section id="onboarding-hero" class="min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
+  <img src="../assets/images/Logo.png" alt="EazyNet Logo" class="mx-auto h-16 mb-6" data-aos="zoom-in" />
+  <h1 class="text-5xl font-bold text-white mb-4" data-aos="zoom-in">Welcome to EazyNet 🎉</h1>
+  <p class="text-xl text-gray-200 mb-6" data-aos="fade-up">Let’s quickly show you how to master your tabs like a pro.</p>
+  <a href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb" target="_blank" rel="noopener noreferrer" class="px-6 py-3 bg-white text-black rounded-xl font-semibold shadow hover:bg-gray-100 transition-all">Add to Chrome</a>
+</section>
+
+<!-- Onboarding Steps -->
+<section id="onboarding-steps" class="py-20 px-6 bg-white text-center relative">
+  <h2 class="text-4xl font-bold mb-12 text-gray-900" data-aos="fade-up">How to Use EazyNet</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="flex flex-col items-center" data-aos="fade-up">
+      <div class="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-2">1. Group Tabs</h3>
+      <p class="text-gray-600">Click ‘Group Tabs’ to instantly organize tabs by domain.</p>
+    </div>
+
+    <div class="flex flex-col items-center" data-aos="fade-up" data-aos-delay="200">
+      <div class="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-search"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-2">2. Search Tabs</h3>
+      <p class="text-gray-600">Quickly find and switch to any tab with Smart Search.</p>
+    </div>
+
+    <div class="flex flex-col items-center" data-aos="fade-up" data-aos-delay="400">
+      <div class="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-star"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-2">3. Upgrade for Pro</h3>
+      <p class="text-gray-600">Enable advanced features like Smart Subgrouping for maximum productivity.</p>
+    </div>
+  </div>
+</section>
+<section id="free-vs-pro" class="py-20 px-6 bg-white text-center">
+  <h2 class="text-4xl font-bold mb-12 text-gray-900" data-aos="fade-up">Free vs Pro</h2>
+
+  <div class="overflow-x-auto">
+    <table class="w-full max-w-4xl mx-auto table-auto border-collapse shadow-lg rounded-xl overflow-hidden">
+      <thead>
+        <tr class="bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 text-gray-800 text-lg">
+          <th class="text-left px-6 py-4 border-b-2 border-gray-200 text-white">Feature</th>
+          <th class="px-6 py-4 border-b-2 border-gray-200 text-white">Free</th>
+          <th class="px-6 py-4 border-b-2 border-gray-200 text-blue-700 text-white">Pro</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700 text-base">
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Group Tabs by Domain</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200">✔️</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50">✔️</td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Smart Subgrouping (Path-Based)</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50 text-green-600 font-medium">✔️</td>
+        </tr>
+         <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-gray-200">Automatic Tabs Grouping</td>
+          <td class="text-center px-6 py-4 border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-gray-200 bg-blue-50 text-green-600">✔️</td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Mapping Updates per Domain</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200">5</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50 font-semibold">Unlimited</td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Tab Search & Navigation</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200">✔️</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50">✔️</td>
+        </tr>
+         <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Individual Tab Memory Management</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200">10 Tabs</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50 font-semibold">Unlimited</td>
+        </tr>
+         <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Tabs Group Memory Management</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50">✔️</td>
+        </tr>
+         <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Automatic Browser Memory Management</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50">✔️</td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-b border-gray-200">Priority Support</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-b border-gray-200 bg-blue-50 text-green-600">✔️</td>
+        </tr>
+        <tr class="hover:bg-gray-50">
+          <td class="text-left px-6 py-4 border-gray-200">Sync Across Devices</td>
+          <td class="text-center px-6 py-4 border-gray-200 text-gray-400">—</td>
+          <td class="text-center px-6 py-4 border-gray-200 bg-blue-50 text-green-600">✔️</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+<div style="height: 2rem;"></div>
+  <div class="mt-10">
+   <a href="#" class="upgrade-pro-btn inline-block px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition duration-300">
+  Upgrade to Pro
+</a>
+
+  </div>
+</section>
+<!-- Feature Deep Dive Section -->
+<section id="feature-deep-dive" class="py-20 px-6 bg-white text-center bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
+  <h2 class="text-4xl font-bold mb-12 text-white" data-aos="fade-up">Feature Deep Dive</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto text-left">
+
+    <!-- Group Tabs by Domain -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm" data-aos="fade-up">
+      <h3 class="text-xl font-semibold mb-2 text-blue-700">🗂️ Group Tabs by Domain</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Instantly groups all open tabs based on domain (e.g., YouTube, GitHub, etc.).</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Reduces clutter and keeps similar tabs neatly together.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Open the extension and click “Group Tabs”.</p>
+    </div>
+
+    <!-- Smart Subgrouping -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border" data-aos="fade-up" data-aos-delay="100">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">🧠 Smart Subgrouping (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Groups tabs not just by domain, but also by URL path (e.g., different Amazon product pages go into different subgroups).</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Gives power users precision-level organization within the same site.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Upgrade to Pro → Enable “Path-based Subgrouping” in settings → Click “Group Tabs”.</p>
+      <p class="text-green-600 font-medium mt-2">Pro Benefit: Deep tab clarity. Better than Chrome’s native grouping.</p>
+    </div>
+
+    <!-- Tab Search -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm" data-aos="fade-up" data-aos-delay="200">
+      <h3 class="text-xl font-semibold mb-2 text-blue-700">🔍 Smart Tab Search</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Instantly searches across all your tabs.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> No more hunting or tab chaos — just type and go.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Open EazyNet → Use the search bar to filter tabs by keyword.</p>
+    </div>
+
+    <!-- Auto Grouping -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border" data-aos="fade-up" data-aos-delay="300">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">⚙️ Auto Tab Grouping (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Automatically groups new tabs by domain or path without manual action.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Fully automated — ideal for multitaskers and researchers.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Enable “Auto Grouping” from the extension settings (Pro only).</p>
+      <p class="text-green-600 font-medium mt-2">Pro Benefit: Hands-free productivity boost.</p>
+    </div>
+
+    <!-- Mapping Updates -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm" data-aos="fade-up">
+      <h3 class="text-xl font-semibold mb-2 text-blue-700">✏️ Mapping Updates</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Allows renaming or re-mapping groups per domain (e.g., “gmail.com” = Work).</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Personalized tab logic for your workflow.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Click the ✏️ icon next to a group → Save your mapping.</p>
+      <p class="text-green-600 font-medium mt-2">Free: 5 updates / domain • Pro: Unlimited</p>
+    </div>
+
+    <!-- Individual Tab Memory -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border" data-aos="fade-up" data-aos-delay="100">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">🛌 Tab Memory Saver</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Snoozes unused tabs to free up memory.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Keeps Chrome fast without closing tabs.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> In the tab search view → Click “Snooze” on a tab → “Restore” when needed.</p>
+      <p class="text-green-600 font-medium mt-2">Free: 10 snoozed tabs • Pro: Unlimited</p>
+    </div>
+
+    <!-- Group Memory Saver -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm" data-aos="fade-up" data-aos-delay="200">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">🧊 Group Memory Saver (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Snoozes all tabs in a group with one click.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Efficient way to pause an entire project/workstream.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> In the “All Groups” section → Click “Snooze Group”.</p>
+      <p class="text-green-600 font-medium mt-2">Pro Benefit: Maximize memory savings instantly.</p>
+    </div>
+
+    <!-- Auto Memory -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border" data-aos="fade-up" data-aos-delay="300">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">🔁 Auto Memory Management (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Automatically snoozes unused tabs every 30 mins.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Saves RAM without thinking about it.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Go to extension settings → Enable “Auto Memory Management”.</p>
+      <p class="text-green-600 font-medium mt-2">Pro Benefit: Set it and forget it — your browser stays light.</p>
+    </div>
+
+    <!-- Sync Across Devices -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm" data-aos="fade-up">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">🌐 Sync Across Devices (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Keeps your groups and settings synced across all Chrome devices.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Seamless transitions between work and home setups.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Just sign into Chrome on all devices with sync enabled.</p>
+      <p class="text-green-600 font-medium mt-2">Pro Benefit: Truly portable tab management.</p>
+    </div>
+
+    <!-- Support -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border" data-aos="fade-up" data-aos-delay="100">
+      <h3 class="text-xl font-semibold mb-2 text-purple-700">📩 Priority Support (Pro)</h3>
+      <p class="text-gray-700"><strong>What it does:</strong> Pro users get faster, personalized help.</p>
+      <p class="text-gray-700 mt-2"><strong>Why it matters:</strong> Get answers and fixes quickly.</p>
+      <p class="text-gray-700 mt-2"><strong>How to use:</strong> Email <a href="mailto:eazynettabmanager@gmail.com" class="text-blue-600 underline">eazynettabmanager@gmail.com</a> with “Pro Support” in the subject.</p>
+    </div>
+
+  </div>
+<div style="height: 2rem;"></div>
+
+  <!-- CTA -->
+  <div class="mt-12">
+    <a href="#" class="upgrade-pro-btn inline-block px-8 py-3 bg-white text-grey rounded-xl font-semibold hover:shadow-lg transition duration-300">
+      Upgrade to Pro
+    </a>
+  </div>
+</section>
+
+
+<!-- Onboarding Pro Section -->
+<section id="onboarding-pro" class="py-20 px-6 bg-gray-50 text-center">
+  <h2 class="text-4xl font-bold mb-12 text-gray-900" data-aos="fade-up">Why Upgrade to Pro?</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+    <div class="bg-white p-8 rounded-lg shadow-md" data-aos="fade-up">
+      <h3 class="text-xl font-semibold mb-4">✨ Smart Subgrouping</h3>
+      <p class="text-gray-600">Automatically group tabs based on paths for deeper organization.</p>
+    </div>
+
+    <div class="bg-white p-8 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="200">
+      <h3 class="text-xl font-semibold mb-4">🔓 Unlimited Mapping Updates</h3>
+      <p class="text-gray-600">Customize your tab groups without any restrictions.</p>
+    </div>
+  </div>
+
+  <!-- Hard-coded spacer to create a visual gap -->
+  <div style="height: 2rem;"></div>
+
+  <!-- Simple Button -->
+  <a href="#"  class="upgrade-pro-btn inline-block px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition duration-300">
+  Upgrade to Pro
+</a>
+
+</section>
+
+<!-- Demo Section -->
+<section id="onboarding-demo" class="py-20 px-6 bg-white text-center">
+  <h2 class="text-4xl font-bold mb-8 text-gray-900" data-aos="fade-up">Watch EazyNet in Action</h2>
+  <div class="relative max-w-4xl mx-auto" style="padding-top: 30.25%;">
+    <iframe src="https://www.youtube.com/embed/fb9KS9Nzb54" title="EazyNet Demo" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
+  </div>
+</section>
+
+<!-- FAQ Section-->
+<section id="faq" class="bg-gray-50 py-20 px-6">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">Frequently Asked Questions</h2>
+    <div class="space-y-2">
+      
+      <!-- Example FAQ Item -->
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+            <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">What is EazyNet?</span>
+            <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+            <p class="py-3">EazyNet is a Chrome extension that helps you group, search, and organize tabs to reduce clutter and improve focus.</p>
+          </div>
+        </div>
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+          <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">Is EazyNet free?</span>
+          <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+          <p class="py-3">Yes! EazyNet has a free plan with powerful features. You can upgrade to Pro for advanced tools like smart subgrouping and unlimited mapping updates.</p>
+        </div>
+      </div>
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+          <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">What is Smart Subgrouping?</span>
+          <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+          <p class="py-3">It’s a Pro feature that groups tabs not just by domain, but by path — for example, different product pages on Amazon will be in separate subgroups.</p>
+        </div>
+      </div>
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+          <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">Will it slow down my browser?</span>
+          <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+          <p class="py-3">Not at all. EazyNet is built with performance in mind and runs efficiently in the background without affecting browsing speed.</p>
+        </div>
+      </div>
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+          <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">Can I use it across multiple devices?</span>
+          <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+          <p class="py-3">Yes! If you're a Pro user, your settings and groups sync automatically via Chrome sync — so your setup follows you everywhere.</p>
+        </div>
+      </div>
+      <div class="faq-item border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition">
+<button class="faq-question cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group">
+          <span class="font-medium text-gray-900 text-base group-hover:text-blue-600">How do I contact support?</span>
+          <svg class="icon w-5 h-5 text-gray-500 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.1 1.02l-4.25 4.65a.75.75 0 01-1.1 0l-4.25-4.65a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-5 text-gray-600 text-sm">
+          <p class="py-3">You can email us at <a href="mailto:eazynettabmanager@gmail.com" class="text-blue-600 underline">eazynettabmanager@gmail.com</a> or use the contact form at the bottom of this page.</p>
+        </div>
+      </div> 
+      
+    </div>
+  </div>
+</section>
+
+
+
+<!-- CTA Section -->
+<section id="onboarding-cta" class="py-20 px-6 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 text-white text-center">
+  <h2 class="text-3xl font-bold mb-4">You're Ready to Go!</h2>
+  <p class="text-lg text-gray-100 mb-8">Open your extension and start organizing your tabs like a pro.</p>
+  <a href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb" target="_blank" rel="noopener noreferrer" class="px-6 py-3 bg-white text-black rounded-xl font-semibold shadow hover:bg-gray-100 transition-all">
+    Open EazyNet Extension
+  </a>
+</section>
+  <div id="footer-placeholder"></div>
+
+<script>
+    AOS.init({ duration: 1000, easing: 'ease-out', once: true });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script type="module" src="../utils/common.js"></script>
+<script src="onboarding.js"></script>
+<script src="https://kit.fontawesome.com/7bc306f971.js" crossorigin="anonymous"></script>
+</body>
+</html>
