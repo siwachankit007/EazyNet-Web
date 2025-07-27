@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="../assets/images/favicon.png" />
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 </head>
 <body class="bg-white text-gray-900 overflow-x-hidden">
  <!-- Navbar -->
@@ -357,9 +357,13 @@
 <script>
     AOS.init({ duration: 1000, easing: 'ease-out', once: true });
 </script>
+<!-- Loading Overlay -->
+<div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="loader-circle"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script type="module" src="../utils/common.js"></script>
 <script src="onboarding.js"></script>
-<script src="https://kit.fontawesome.com/7bc306f971.js" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -9,9 +9,13 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
   <link href="../styles/output.css" rel="stylesheet" />
   <script>
-    // Redirect after 7 seconds
+    // Redirect after 7 seconds with smooth transition
     setTimeout(() => {
-      window.location.href = "https://eazynet.app";
+      if (window.EazyNavigation) {
+        window.EazyNavigation.externalRedirect("https://eazynet.app");
+      } else {
+        window.location.href = "https://eazynet.app";
+      }
     }, 7000);
   </script>
 </head>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -42,7 +42,6 @@
   <!-- JS Scripts -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4657754476630097" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-  <script src="https://kit.fontawesome.com/7bc306f971.js" crossorigin="anonymous"></script>
   <!-- SEO Structured Data -->
   <script type="application/ld+json">
     {
@@ -150,7 +149,7 @@
         </div>
                <!-- Slide 5: Deep Dive without Image -->
 <div class="swiper-slide bg-gray-50 p-6 rounded-2xl shadow-md transition-transform hover:scale-105 duration-300 group cursor-pointer"
-     onclick="window.location.href='onboarding.html#feature-deep-dive';">
+                      onclick="EazyNavigation.quickNavigate('onboarding.html#feature-deep-dive');">
 
   <h3 class="text-xl font-semibold mb-2 text-gray-800">📘 Click For Features Deep Dive</h3>
 
@@ -412,6 +411,11 @@
   </form>
 </section>
   <div id="footer-placeholder"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="loader-circle"></div>
+  </div>
 
     <script>
       AOS.init({

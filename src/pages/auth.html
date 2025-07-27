@@ -6,7 +6,8 @@
   <title>EazyNet | Login & Signup</title>
   <link rel="stylesheet" href="../styles/output.css" />
   <link rel="stylesheet" href="../styles/auth.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png" />
+
 </head>
 <body class="bg-white text-gray-900 font-inter">
   <div id="navbar-placeholder"></div>
@@ -35,28 +36,35 @@
           <!-- Login Form -->
           <div class="login-form" id="login-form">
             <div class="title text-blue-700">Login</div>
-            <form class="space-y-4">
+            <form action="#" method="POST" novalidate autocomplete="on">
               <div class="input-box">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="loginEmail" placeholder="Enter your email" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <input type="email" id="loginEmail" name="email" placeholder="Enter your email" required 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
                 <div id="loginEmail-msg" class="text-sm mt-1 hidden text-red-500"></div>
               </div>
               <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="loginPassword" placeholder="Enter your password" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
                 <div id="loginPassword-msg" class="text-sm mt-1 hidden text-red-500"></div>
               </div>
-              <div class="text text-right mb-2"><a href="#" class="text-blue-600 hover:underline">Forgot password?</a></div>
+              <div class="text text-right mb-2">
+                <a href="#" class="text-blue-600 hover:underline">Forgot password?</a>
+              </div>
               <div class="button input-box">
-                <input type="submit" value="Login" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition" />
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition">
+                  Login
+                </button>
               </div>
               <div class="or-divider"><span>OR</span></div>
               <div class="google-btn" id="google-login">
-                <img src="../assets/images/googleLogo.png" alt="Google Logo" /> <span class="font-semibold text-gray-700">Login with Google</span>
+                <img src="../assets/images/googleLogo.png" alt="Google Logo" />
+                <span class="font-semibold text-gray-700">Login with Google</span>
               </div>
               <div class="text sign-up-text text-center mt-2">
                 Don't have an account?
-                <button id="show-signup" type="button" class="text-indigo-500 underline font-semibold hover:shadow-lg cursor-pointer transition-all duration-200 ml-1">
+                <button type="button" id="show-signup" class="text-indigo-500 underline font-semibold hover:shadow-lg cursor-pointer transition-all duration-200 ml-1">
                   Signup now
                 </button>
               </div>
@@ -65,33 +73,40 @@
           <!-- Signup Form -->
           <div class="signup-form" id="signup-form">
             <div class="title text-blue-700">Signup</div>
-            <form class="space-y-4">
+            <form action="#" method="POST" novalidate autocomplete="on">
               <div class="input-box">
                 <i class="fas fa-user"></i>
-                <input type="text" id="name" placeholder="Enter your name" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <input type="text" id="name" name="name" placeholder="Enter your name" required 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <div id="name-msg" class="text-sm mt-1 hidden text-red-500"></div>
               </div>
               <div class="input-box">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="signupEmail" placeholder="Enter your email" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <input type="email" id="signupEmail" name="email" placeholder="Enter your email" required 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
                 <div id="signupEmail-msg" class="text-sm mt-1 hidden text-red-500"></div>
               </div>
               <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="signupPassword" placeholder="Create password" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
+                <input type="password" id="signupPassword" name="password" placeholder="Create password" required 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" />
                 <div id="signupPassword-msg" class="text-sm mt-1 hidden text-red-500"></div>
               </div>
               <div class="button input-box">
-                <input type="submit" value="Signup" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition" />
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition">
+                  Signup
+                </button>
               </div>
               <div class="or-divider"><span>OR</span></div>
               <div class="google-btn" id="google-signup">
-                <img src="../assets/images/googleLogo.png" alt="Google Logo" /> <span class="font-semibold text-gray-700">Signup with Google</span>
+                <img src="../assets/images/googleLogo.png" alt="Google Logo" />
+                <span class="font-semibold text-gray-700">Signup with Google</span>
               </div>
               <div class="text sign-up-text text-center mt-2">
                 Already have an account?
-                <label for="flip" class="text-indigo-500 underline font-semibold hover: cursor-pointer transition-all duration-200 ml-1">
+                <button type="button" id="show-login" class="text-indigo-500 underline font-semibold hover:cursor-pointer transition-all duration-200 ml-1">
                   Login now
-                </label>
+                </button>
               </div>
             </form>
           </div>
@@ -101,12 +116,14 @@
   </section>
   
   <div id="footer-placeholder"></div>
-  <script type="module" src="../services/auth.js"></script>
-  <script type="module" src="../utils/common.js"></script>
-  
+
   <!-- Loader Overlay -->
-  <div id="loader-overlay">
+  <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="loader-circle"></div>
   </div>
+
+  <!-- Load scripts at the end -->
+  <script type="module" src="../utils/common.js"></script>
+  <script type="module" src="../services/auth.js"></script>
 </body>
 </html>
