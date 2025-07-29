@@ -1,0 +1,33 @@
+{
+  "name": "eazynet-web",
+  "version": "1.0.0",
+  "description": "EazyNet Web Application",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siwachankit007/EazyNet-Web.git"
+  },
+  "keywords": [
+    "eazynet",
+    "web",
+    "application"
+  ],
+  "author": "Ankit Singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/siwachankit007/EazyNet-Web/issues"
+  },
+  "homepage": "https://github.com/siwachankit007/EazyNet-Web#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.3.3",
+    "@tailwindcss/forms": "^0.5.6"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.0"
+  }
+}
