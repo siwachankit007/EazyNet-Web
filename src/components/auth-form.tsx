@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
+import { useLoading } from "@/components/loading-context"
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
-  const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,6 +23,7 @@ export function AuthForm() {
   
   const router = useRouter()
   const supabase = createClient()
+  const { isLoading, withLoading, showGlobalLoading } = useLoading()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -42,22 +44,22 @@ export function AuthForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setValidationError(null) // Clear previous errors
 
-    try {
+    await withLoading('auth-form', async () => {
       // Validation
       if (!validateEmail(formData.email)) {
-        toast.error("Please enter a valid email address")
+        setValidationError("Please enter a valid email address")
         return
       }
 
       if (!validatePassword(formData.password)) {
-        toast.error("Password must be at least 8 characters with uppercase, lowercase, number, and special character")
+        setValidationError("Password must be at least 8 characters with uppercase, lowercase, number, and special character")
         return
       }
 
       if (!isLogin && formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match")
+        setValidationError("Passwords do not match")
         return
       }
 
@@ -69,16 +71,18 @@ export function AuthForm() {
         })
 
         if (error) {
-          toast.error(error.message)
+          setValidationError(error.message)
           return
         }
 
         toast.success("Login successful!")
+        // Use router for faster navigation with loading
+        showGlobalLoading()
         router.push("/dashboard")
       } else {
         // Sign up
         if (!formData.fullName.trim()) {
-          toast.error("Please enter your full name")
+          setValidationError("Please enter your full name")
           return
         }
 
@@ -93,23 +97,19 @@ export function AuthForm() {
         })
 
         if (error) {
-          toast.error(error.message)
+          setValidationError(error.message)
           return
         }
 
         toast.success("Account created! Please check your email to verify your account.")
         setIsLogin(true)
       }
-    } catch (error) {
-      toast.error("An unexpected error occurred")
-      console.error("Auth error:", error)
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
   const handleGoogleAuth = async () => {
-    try {
+    setValidationError(null) // Clear previous errors
+    await withLoading('google-auth', async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -118,23 +118,40 @@ export function AuthForm() {
       })
 
       if (error) {
-        toast.error(error.message)
+        setValidationError(error.message)
       }
-    } catch (error) {
-      toast.error("Failed to sign in with Google")
-      console.error("Google auth error:", error)
-    }
+    })
   }
 
   return (
     <div className="space-y-6">
+      {/* Validation Error Display */}
+      {validationError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{validationError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toggle Buttons */}
       <div className="flex border rounded-lg p-1 bg-gray-100">
         <Button
           type="button"
           variant={isLogin ? "default" : "ghost"}
           className="flex-1"
-          onClick={() => setIsLogin(true)}
+          onClick={() => {
+            setIsLogin(true)
+            setValidationError(null) // Clear errors when switching to login
+          }}
+          suppressHydrationWarning
         >
           Login
         </Button>
@@ -142,7 +159,11 @@ export function AuthForm() {
           type="button"
           variant={!isLogin ? "default" : "ghost"}
           className="flex-1"
-          onClick={() => setIsLogin(false)}
+          onClick={() => {
+            setIsLogin(false)
+            setValidationError(null) // Clear errors when switching to signup
+          }}
+          suppressHydrationWarning
         >
           Sign Up
         </Button>
@@ -164,6 +185,7 @@ export function AuthForm() {
                 onChange={handleInputChange}
                 className="pl-10"
                 required={!isLogin}
+                suppressHydrationWarning
               />
             </div>
           </div>
@@ -182,6 +204,7 @@ export function AuthForm() {
               onChange={handleInputChange}
               className="pl-10"
               required
+              suppressHydrationWarning
             />
           </div>
         </div>
@@ -199,6 +222,7 @@ export function AuthForm() {
               onChange={handleInputChange}
               className="pl-10 pr-10"
               required
+              suppressHydrationWarning
             />
             <Button
               type="button"
@@ -206,6 +230,7 @@ export function AuthForm() {
               size="sm"
               className="absolute right-0 top-0 h-full px-3"
               onClick={() => setShowPassword(!showPassword)}
+              suppressHydrationWarning
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
@@ -226,13 +251,19 @@ export function AuthForm() {
                 onChange={handleInputChange}
                 className="pl-10"
                 required={!isLogin}
+                suppressHydrationWarning
               />
             </div>
           </div>
         )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading('auth-form')}
+          suppressHydrationWarning
+        >
+          {isLoading('auth-form') ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
         </Button>
       </form>
 
@@ -250,6 +281,8 @@ export function AuthForm() {
         variant="outline"
         className="w-full"
         onClick={handleGoogleAuth}
+        disabled={isLoading('google-auth')}
+        suppressHydrationWarning
       >
         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
           <path
@@ -269,7 +302,7 @@ export function AuthForm() {
             fill="#EA4335"
           />
         </svg>
-        Continue with Google
+        {isLoading('google-auth') ? "Connecting..." : "Continue with Google"}
       </Button>
 
       {isLogin && (

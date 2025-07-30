@@ -1,79 +1,44 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DashboardNav } from "@/components/dashboard-nav"
 import { ProBenefits } from "@/components/pro-benefits"
 import { QuickActions } from "@/components/quick-actions"
 import { UserStats } from "@/components/user-stats"
 import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
+import { AuthGuard } from "@/components/auth-guard"
+import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import type { User } from "@supabase/supabase-js"
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
+  // Fetch user data on component mount
+  React.useEffect(() => {
     const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error || !user) {
-        router.push('/auth')
-        return
-      }
-      
-      setUser(user)
-      setLoading(false)
-    }
-
-    getUser()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        router.push('/auth')
-      } else if (session?.user) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
         setUser(session.user)
-        setLoading(false)
       }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [router, supabase.auth])
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      toast.error("Error signing out")
-    } else {
-      toast.success("Signed out successfully")
-      router.push('/')
     }
-  }
+    getUser()
+  }, [supabase.auth])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
-      <DashboardNav user={user} onSignOut={handleSignOut} />
+      <Navigation />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0]}!
+              Welcome back, {user?.user_metadata?.name || user?.email?.split('@')[0]}!
             </h1>
             <p className="text-white/80">
               Manage your tab organization and boost your productivity
@@ -150,6 +115,16 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <AuthGuard>
+      <DashboardContent />
+    </AuthGuard>
   )
 }

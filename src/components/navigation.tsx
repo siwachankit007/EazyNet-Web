@@ -1,112 +1,438 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, User, Settings, LogOut } from "lucide-react"
+import { useLoading } from "@/components/loading-context"
+import { createClient } from "@/lib/supabase/client"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+// Custom hook for navigation with loading states
+function useNavigationWithLoading() {
+  const router = useRouter()
+  const { showGlobalLoading, hideGlobalLoading, withLoading } = useLoading()
+
+  const navigateWithLoading = useCallback(async (href: string, options: {
+    showLoader?: boolean
+    delay?: number
+    buttonId?: string
+  } = {}) => {
+    const { showLoader = true, delay = 300, buttonId } = options
+
+    if (showLoader) {
+      showGlobalLoading()
+    }
+
+    if (buttonId) {
+      await withLoading(buttonId, async () => {
+        router.push(href)
+      })
+    } else {
+      router.push(href)
+    }
+
+    // Hide loading after delay to ensure smooth transition
+    setTimeout(() => {
+      hideGlobalLoading()
+    }, delay)
+  }, [router, showGlobalLoading, hideGlobalLoading, withLoading])
+
+  return { navigateWithLoading }
+}
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState('')
+  const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const router = useRouter()
+  const { withLoading } = useLoading()
+  const { navigateWithLoading } = useNavigationWithLoading()
+  const supabase = createClient()
+
+  useEffect(() => {
+    let ticking = false
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 10)
+          
+          // Update active section based on scroll position
+          const sections = ['hero', 'features', 'pricing', 'testimonials', 'contact']
+          for (const section of sections) {
+            const element = document.getElementById(section)
+            if (element) {
+              const rect = element.getBoundingClientRect()
+              if (rect.top <= 120 && rect.bottom >= 120) {
+                setActiveSection(section)
+                break
+              }
+            }
+          }
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user || null)
+      setIsAuthLoading(false)
+    }
+
+    checkAuth()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null)
+      setIsAuthLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  const handleSmoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
+    e.preventDefault()
+    
+    const element = document.getElementById(target)
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      })
+      
+      // Add highlight effect
+      element.classList.add('section-highlight')
+      setTimeout(() => {
+        element.classList.remove('section-highlight')
+      }, 400)
+    }
+    
+    setIsMenuOpen(false)
+  }, [])
+
+  const handlePageNavigation = useCallback(async (href: string, buttonId: string) => {
+    // For dashboard access, check authentication quickly
+    if (href === '/dashboard' && !user) {
+      await navigateWithLoading('/auth', { buttonId })
+      return
+    }
+    
+    // Use navigation with loading for all page transitions
+    await navigateWithLoading(href, { 
+      buttonId: href === '/dashboard' || href === '/profile' ? buttonId : undefined 
+    })
+  }, [navigateWithLoading, user])
+
+  const handleSignOut = useCallback(async () => {
+    await withLoading('sign-out', async () => {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Error signing out:', error)
+        return
+      }
+      // Use direct router push for auth redirects to avoid loading conflicts
+      router.push('/auth')
+    })
+  }, [supabase.auth, withLoading, router])
+
+  const NavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) => {
+    const isActive = activeSection === href.replace('/#', '')
+    const isSection = href.startsWith('/#')
+    
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (isSection) {
+        // Handle smooth scroll for section links
+        e.preventDefault()
+        // Check if we're on the home page, if not, navigate there first
+        if (window.location.pathname !== '/') {
+          navigateWithLoading(href)
+        } else {
+          handleSmoothScroll(e, href.replace('/#', ''))
+        }
+      } else if (onClick) {
+        // Handle external page navigation
+        e.preventDefault()
+        onClick(e)
+      } else {
+        // Default navigation for external links
+        e.preventDefault()
+        navigateWithLoading(href)
+      }
+    }
+    
+    return (
+      <a
+        href={href}
+        onClick={handleClick}
+        className={`nav-link relative text-gray-700 font-medium hover:text-blue-600 transition-all duration-200 px-4 py-2 rounded-lg hover:bg-blue-50 group ${
+          isActive ? 'text-blue-600 bg-blue-50' : ''
+        }`}
+      >
+        {children}
+        <span className={`absolute bottom-1 left-1/2 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-8 group-hover:left-1/2 group-hover:-translate-x-1/2 ${
+          isActive ? 'w-8 -translate-x-1/2' : 'w-0'
+        }`}></span>
+      </a>
+    )
+  }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image 
-              src="/images/Logo.png" 
-              alt="EazyNet Logo" 
-              width={32} 
-              height={32}
-              className="w-8 h-8"
-            />
-            <span className="font-bold text-xl text-gray-900">EazyNet</span>
-          </Link>
+    <nav className={`bg-white shadow-lg sticky top-0 z-50 border-b border-gray-100 transition-all duration-200 ${
+      isScrolled ? 'shadow-xl backdrop-blur-sm bg-white/95' : ''
+    }`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-3 group" onClick={() => handlePageNavigation('/', 'logo')}>
+          <Image
+            src="/images/Logo.png"
+            alt="EazyNet Logo"
+            width={32}
+            height={32}
+            className="h-8 w-auto transition-transform group-hover:scale-110"
+          />
+          <span className="font-bold text-xl text-gray-800 group-hover:text-blue-600 transition-colors">
+            EazyNet
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Features
-            </Link>
-            <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Pricing
-            </Link>
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/auth" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Sign In
-            </Link>
-            <Button asChild>
-              <a 
-                href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Add to Chrome
-              </a>
-            </Button>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+        {/* Centered Nav Links */}
+        <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex items-center space-x-2">
+            <NavLink href="/#features">Features</NavLink>
+            <NavLink href="/#pricing">Pricing</NavLink>
+            <NavLink href="/#testimonials">Testimonials</NavLink>
+            <NavLink href="/#contact">Contact</NavLink>
+            <NavLink href="/onboarding" onClick={() => handlePageNavigation('/onboarding', 'tutorial')}>
+              Tutorial
+            </NavLink>
+            {/* Only show Dashboard link if user is authenticated */}
+            {user && (
+              <NavLink href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard')}>
+                Dashboard
+              </NavLink>
+            )}
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link 
-                href="#features" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+        {/* CTA & Auth Buttons */}
+        <div className="flex items-center gap-4 ml-8">
+          <Button asChild className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+            <a
+              href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get EazyNet
+            </a>
+          </Button>
+
+          {/* Show loading state, Join Us button when not authenticated, or user dropdown when authenticated */}
+          {isAuthLoading ? (
+            <div className="px-8 py-4 bg-gray-200 text-gray-500 rounded-xl font-semibold animate-pulse">
+              Loading...
+            </div>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2 ml-4">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {user?.user_metadata?.name || user?.email?.split('@')[0]}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                sideOffset={8}
+                className="w-48 max-w-[calc(100vw-2rem)]"
+                side="bottom"
+                avoidCollisions={true}
+                collisionPadding={8}
+                style={{ maxWidth: 'min(12rem, calc(100vw - 2rem))' }}
               >
-                Features
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard-dropdown')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" onClick={() => handlePageNavigation('/profile', 'profile-dropdown')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+              <Link href="/auth" onClick={() => handlePageNavigation('/auth', 'join-us')}>
+                Join Us
               </Link>
-              <Link 
-                href="#pricing" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-              <Link 
-                href="/dashboard" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
+            </Button>
+          )}
+
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden hover:bg-blue-50 hover:text-blue-600 transition-colors btn-enhanced"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            suppressHydrationWarning
+          >
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg animate-in slide-in-from-top duration-200">
+          <div className="px-4 pt-2 pb-4 space-y-2">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/#features" onClick={(e) => {
+              e.preventDefault()
+              if (window.location.pathname !== '/') {
+                navigateWithLoading('/#features')
+              } else {
+                handleSmoothScroll(e, 'features')
+              }
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Features
+            </a>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/#pricing" onClick={(e) => {
+              e.preventDefault()
+              if (window.location.pathname !== '/') {
+                navigateWithLoading('/#pricing')
+              } else {
+                handleSmoothScroll(e, 'pricing')
+              }
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Pricing
+            </a>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/#testimonials" onClick={(e) => {
+              e.preventDefault()
+              if (window.location.pathname !== '/') {
+                navigateWithLoading('/#testimonials')
+              } else {
+                handleSmoothScroll(e, 'testimonials')
+              }
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Testimonials
+            </a>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/#contact" onClick={(e) => {
+              e.preventDefault()
+              if (window.location.pathname !== '/') {
+                navigateWithLoading('/#contact')
+              } else {
+                handleSmoothScroll(e, 'contact')
+              }
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Contact
+            </a>
+            <Link href="/onboarding" onClick={(e) => {
+              e.preventDefault()
+              navigateWithLoading('/onboarding')
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Tutorial
+            </Link>
+            {/* Only show Dashboard link in mobile menu if user is authenticated */}
+            {user && (
+              <Link href="/dashboard" onClick={(e) => {
+                e.preventDefault()
+                navigateWithLoading('/dashboard')
+              }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
                 Dashboard
               </Link>
-              <Link 
-                href="/auth" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Button asChild className="w-full">
-                <a 
-                  href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb" 
-                  target="_blank" 
+            )}
+            <div className="pt-4 space-y-2">
+              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-lg transition-all btn-enhanced">
+                <a
+                  href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb"
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Add to Chrome
+                  Get EazyNet
                 </a>
               </Button>
+              
+              {/* Show loading state, Join Us button when not authenticated, or user menu when authenticated */}
+              {isAuthLoading ? (
+                <div className="w-full px-8 py-4 bg-gray-200 text-gray-500 rounded-xl font-semibold animate-pulse text-center">
+                  Loading...
+                </div>
+              ) : user ? (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <User className="h-4 w-4" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.user_metadata?.name || user?.email?.split('@')[0]}
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/dashboard" onClick={(e) => {
+                    e.preventDefault()
+                    navigateWithLoading('/dashboard')
+                  }} className="flex items-center text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <Link href="/profile" onClick={(e) => {
+                    e.preventDefault()
+                    navigateWithLoading('/profile')
+                  }} className="flex items-center text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                  <button onClick={(e) => {
+                    e.preventDefault()
+                    handleSignOut()
+                  }} className="flex items-center w-full text-left text-gray-700 font-medium hover:text-red-600 hover:bg-red-50 transition-all px-4 py-3 rounded-lg">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <Button asChild className="w-full px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+                  <Link href="/auth" onClick={(e) => {
+                    e.preventDefault()
+                    navigateWithLoading('/auth')
+                  }}>
+                    Join Us
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   )
 }

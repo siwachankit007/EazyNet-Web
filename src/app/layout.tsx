@@ -1,7 +1,12 @@
+import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
+import { AOSInit } from "@/components/aos-init"
+import { ScrollProgress } from "@/components/scroll-progress"
+import { ScrollToTop } from "@/components/scroll-to-top"
+import { LoadingProvider } from "@/components/loading-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,11 +47,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/favicon.png" type="image/png" />
+        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+      </head>
       <body
         className={`${inter.variable} font-sans antialiased`}
       >
-        {children}
-        <Toaster position="top-right" />
+        <LoadingProvider>
+          <ScrollProgress />
+          <AOSInit />
+          <div className="page-transition-enter page-transition-enter-active">
+            {children}
+          </div>
+          <ScrollToTop />
+          <Toaster position="top-center" />
+        </LoadingProvider>
       </body>
     </html>
   );

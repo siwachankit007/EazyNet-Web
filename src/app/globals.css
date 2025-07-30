@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -61,7 +63,244 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    /* Remove any horizontal overflow that might cause double scrollbars */
+    overflow-x: hidden;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+    /* Prevent horizontal scrolling */
+    overflow-x: hidden;
+    /* Optimize scroll performance */
+    scroll-behavior: smooth;
+  }
+
+  /* Page transition animations */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+  
+  .page-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .page-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 300ms ease-in, transform 300ms ease-in;
+  }
+}
+
+@layer components {
+  /* Custom styles for EazyNet */
+  .required-asterisk {
+    @apply text-red-500;
+  }
+
+  .policy-link {
+    @apply text-blue-600 hover:text-blue-800 transition-colors;
+  }
+
+  /* FAQ styles */
+  .faq-item {
+    @apply border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition;
+  }
+
+  .faq-question {
+    @apply cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition;
+  }
+
+  .faq-answer {
+    @apply px-5 text-gray-600 text-sm;
+  }
+
+  /* Custom primary color */
+  .text-primary {
+    @apply text-blue-600;
+  }
+
+  .hover\:text-primary:hover {
+    @apply text-blue-700;
+  }
+
+  /* Focus ring styles */
+  .focus\:ring-primary:focus {
+    @apply ring-blue-500;
+  }
+
+  /* Shadow effects */
+  .shadow-xs {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  /* Enhanced navigation animations - reduced for performance */
+  .nav-link {
+    @apply relative transition-all duration-200 ease-out;
+    transform: translateY(0);
+    will-change: transform;
+  }
+  
+  .nav-link:hover {
+    transform: translateY(-1px);
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transition: all 0.2s ease;
+    transform: translateX(-50%);
+    will-change: width;
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    @apply inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Scroll indicator - Fixed and more prominent */
+  .scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(59, 130, 246, 0.1);
+    z-index: 99999;
+    pointer-events: none;
+  }
+
+  .scroll-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+    transform-origin: left;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+  }
+
+  /* Section highlight animation - reduced for performance */
+  .section-highlight {
+    animation: sectionPulse 0.4s ease-out;
+  }
+
+  @keyframes sectionPulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
+    }
+    70% {
+      box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+  }
+
+  /* Custom animations */
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  /* Button hover enhancement - optimized */
+  .btn-enhanced {
+    @apply transition-all duration-200 ease-out;
+    transform: translateY(0) scale(1);
+    will-change: transform;
+  }
+  
+  .btn-enhanced:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-enhanced:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Prevent layout shifts from dropdowns */
+  [data-radix-popper-content-wrapper] {
+    position: fixed !important;
+    z-index: 9999;
+  }
+
+  /* Ensure dropdown content doesn't affect document flow */
+  [data-radix-dropdown-menu-content] {
+    position: fixed !important;
+    transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+    animation: dropdownFadeIn 0.2s ease-out;
+    max-width: min(12rem, calc(100vw - 2rem)) !important;
+    overflow: hidden;
+  }
+
+  @keyframes dropdownFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Ensure navigation container doesn't shift */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    overflow: visible;
+    /* Prevent any layout shifts */
+    contain: layout style paint;
+  }
+
+  /* Prevent any horizontal scrollbar from appearing */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Ensure the main container doesn't shift */
+  .max-w-7xl {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
