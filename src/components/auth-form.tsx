@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +8,8 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
+import { logUserData } from "@/lib/utils"
+import { updateLoginDateTime, createUserRecord } from "@/lib/auth-utils"
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
@@ -21,9 +22,8 @@ export function AuthForm() {
     fullName: ""
   })
   
-  const router = useRouter()
   const supabase = createClient()
-  const { isLoading, withLoading, showGlobalLoading } = useLoading()
+  const { isLoading, withLoading } = useLoading()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -65,20 +65,28 @@ export function AuthForm() {
 
       if (isLogin) {
         // Login
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log('AuthForm: Attempting login for email:', formData.email)
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         })
 
         if (error) {
+          console.log('AuthForm: Login error:', error.message)
           setValidationError(error.message)
           return
         }
 
+        logUserData('AuthForm', data.user, { action: 'Login Successful', hasSession: !!data.session })
+
+        // Update loginDateTime in the users table
+        if (data.user) {
+          console.log('AuthForm: Updating login date time for user:', data.user.id)
+          await updateLoginDateTime(data.user.id)
+        }
+
         toast.success("Login successful!")
-        // Use router for faster navigation with loading
-        showGlobalLoading()
-        router.push("/dashboard")
+        // Auth context will handle the redirect automatically
       } else {
         // Sign up
         if (!formData.fullName.trim()) {
@@ -86,7 +94,8 @@ export function AuthForm() {
           return
         }
 
-        const { error } = await supabase.auth.signUp({
+        console.log('AuthForm: Attempting signup for email:', formData.email, 'name:', formData.fullName)
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -97,8 +106,17 @@ export function AuthForm() {
         })
 
         if (error) {
+          console.log('AuthForm: Signup error:', error.message)
           setValidationError(error.message)
           return
+        }
+
+        logUserData('AuthForm', data.user, { action: 'Signup Successful', hasSession: !!data.session })
+
+        // Initialize loginDateTime for new users
+        if (data.user) {
+          console.log('AuthForm: Creating user record for:', data.user.id)
+          await createUserRecord(data.user, formData.fullName)
         }
 
         toast.success("Account created! Please check your email to verify your account.")

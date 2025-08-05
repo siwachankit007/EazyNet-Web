@@ -7,6 +7,7 @@ import { AOSInit } from "@/components/aos-init"
 import { ScrollProgress } from "@/components/scroll-progress"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { LoadingProvider } from "@/components/loading-context"
+import { AuthProvider } from "@/lib/auth-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,13 +58,15 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
       >
         <LoadingProvider>
-          <ScrollProgress />
-          <AOSInit />
-          <div className="page-transition-enter page-transition-enter-active">
-            {children}
-          </div>
-          <ScrollToTop />
-          <Toaster position="top-center" />
+          <AuthProvider>
+            <ScrollProgress />
+            <AOSInit />
+            <div className="page-transition-enter page-transition-enter-active">
+              {children}
+            </div>
+            <ScrollToTop />
+            <Toaster position="top-center" />
+          </AuthProvider>
         </LoadingProvider>
       </body>
     </html>

@@ -1,31 +1,18 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProBenefits } from "@/components/pro-benefits"
 import { QuickActions } from "@/components/quick-actions"
 import { UserStats } from "@/components/user-stats"
-import { createClient } from "@/lib/supabase/client"
-import { AuthGuard } from "@/components/auth-guard"
+import { RouteGuard } from "@/components/route-guard"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import type { User } from "@supabase/supabase-js"
+import { useAuth } from "@/lib/auth-context"
 
 function DashboardContent() {
-  const [user, setUser] = useState<User | null>(null)
-  const supabase = createClient()
-
-  // Fetch user data on component mount
-  React.useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-      }
-    }
-    getUser()
-  }, [supabase.auth])
+  const { user } = useAuth()
 
 
 
@@ -123,8 +110,8 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <AuthGuard>
+    <RouteGuard requireAuth>
       <DashboardContent />
-    </AuthGuard>
+    </RouteGuard>
   )
 }

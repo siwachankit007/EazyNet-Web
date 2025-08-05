@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X, User, Settings, LogOut } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
-import { createClient } from "@/lib/supabase/client"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { useAuth } from "@/lib/auth-context"
+import { getUserDataWithFallback, invalidateUserCache, type UserData } from "@/lib/user-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,12 +53,9 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('')
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-  const [isAuthLoading, setIsAuthLoading] = useState(true)
-  const router = useRouter()
-  const { withLoading } = useLoading()
+  const [userData, setUserData] = useState<UserData | null>(null)
   const { navigateWithLoading } = useNavigationWithLoading()
-  const supabase = createClient()
+  const { user, isAuthenticated } = useAuth()
 
   useEffect(() => {
     let ticking = false
@@ -90,24 +87,22 @@ export function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Check authentication status
+  // Fetch user data when user changes
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user || null)
-      setIsAuthLoading(false)
+    if (user) {
+      // Invalidate cache first to ensure fresh data
+      invalidateUserCache(user.id)
+      const fetchUserData = async () => {
+        const freshUserData = await getUserDataWithFallback(user, true)
+        if (freshUserData) {
+          setUserData(freshUserData)
+        }
+      }
+      fetchUserData()
+    } else {
+      setUserData(null)
     }
-
-    checkAuth()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null)
-      setIsAuthLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [user])
 
   const handleSmoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
     e.preventDefault()
@@ -142,17 +137,17 @@ export function Navigation() {
     })
   }, [navigateWithLoading, user])
 
+  const { signOut } = useAuth()
+
   const handleSignOut = useCallback(async () => {
-    await withLoading('sign-out', async () => {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Error signing out:', error)
-        return
-      }
-      // Use direct router push for auth redirects to avoid loading conflicts
-      router.push('/auth')
-    })
-  }, [supabase.auth, withLoading, router])
+    console.log('Starting sign out process...')
+    try {
+      await signOut()
+      console.log('Sign out successful, auth context will handle redirect')
+    } catch (err) {
+      console.error('Exception during sign out:', err)
+    }
+  }, [signOut])
 
   const NavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void }) => {
     const isActive = activeSection === href.replace('/#', '')
@@ -245,12 +240,8 @@ export function Navigation() {
             </a>
           </Button>
 
-          {/* Show loading state, Join Us button when not authenticated, or user dropdown when authenticated */}
-          {isAuthLoading ? (
-            <div className="px-8 py-4 bg-gray-200 text-gray-500 rounded-xl font-semibold animate-pulse">
-              Loading...
-            </div>
-          ) : user ? (
+          {/* Show Join Us button when not authenticated, or user dropdown when authenticated */}
+          {isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2 ml-4">
@@ -382,12 +373,8 @@ export function Navigation() {
                 </a>
               </Button>
               
-              {/* Show loading state, Join Us button when not authenticated, or user menu when authenticated */}
-              {isAuthLoading ? (
-                <div className="w-full px-8 py-4 bg-gray-200 text-gray-500 rounded-xl font-semibold animate-pulse text-center">
-                  Loading...
-                </div>
-              ) : user ? (
+              {/* Show Join Us button when not authenticated, or user menu when authenticated */}
+              {isAuthenticated && user ? (
                 <div className="space-y-2">
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                     <User className="h-4 w-4" />

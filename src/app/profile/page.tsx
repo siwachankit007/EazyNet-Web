@@ -1,18 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
-import { AuthGuard } from "@/components/auth-guard"
-import type { User } from "@supabase/supabase-js"
+import { RouteGuard } from "@/components/route-guard"
+import { useAuth } from "@/lib/auth-context"
+import { logUserData } from "@/lib/utils"
+import { getUserDataWithFallback, invalidateUserCache, type UserData } from "@/lib/user-utils"
+import { createClient } from "@/lib/supabase/client"
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,8 @@ import {
 } from "@/components/ui/dialog"
 
 function ProfileContent() {
-  const [user, setUser] = useState<User | null>(null)
+  const { user } = useAuth()
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -31,24 +33,37 @@ function ProfileContent() {
 
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const router = useRouter()
-  const supabase = createClient()
   const { withLoading } = useLoading()
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-        setFullName(session.user.user_metadata?.name || "")
-        setEmail(session.user.email || "")
+    if (user) {
+      // Invalidate cache first to ensure fresh data
+      invalidateUserCache(user.id)
+      
+      // Fetch fresh user data from database with fallback to session
+      const getUserData = async () => {
+        const freshUserData = await getUserDataWithFallback(user, true)
+        if (freshUserData) {
+          setUserData(freshUserData)
+          setFullName(freshUserData.name || "")
+          setEmail(freshUserData.email || "")
+        } else {
+          // Fallback to session data
+          setFullName(user.user_metadata?.name || "")
+          setEmail(user.email || "")
+          logUserData('Profile', user, { action: 'User Data Set (Session Fallback)' })
+        }
       }
+      getUserData()
     }
-    getUser()
-  }, [supabase.auth])
+  }, [user])
+
+
 
   const handleUpdateProfile = async () => {
+    console.log('Profile: Updating profile for user:', user?.id, 'new name:', fullName)
     await withLoading('update-profile', async () => {
+      const supabase = createClient()
       // Update both auth metadata and database table
       const [authResult, dbResult] = await Promise.all([
         supabase.auth.updateUser({
@@ -63,6 +78,13 @@ function ProfileContent() {
           .eq('id', user?.id)
       ])
 
+      console.log('Profile: Update results:', {
+        authError: authResult.error,
+        dbError: dbResult.error,
+        authData: authResult.data,
+        dbData: dbResult.data
+      })
+
       if (authResult.error || dbResult.error) {
         toast.error("Failed to update profile")
         console.error('Auth error:', authResult.error)
@@ -70,27 +92,34 @@ function ProfileContent() {
       } else {
         toast.success("Profile updated successfully")
         setIsEditing(false)
-        // Refresh session data
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          setUser(session.user)
-          setFullName(session.user.user_metadata?.name || "")
+        
+        // Invalidate cache and refresh user data
+        if (user?.id) {
+          invalidateUserCache(user.id)
+        }
+        
+        // Refresh user data from database
+        const freshUserData = await getUserDataWithFallback(user!, true)
+        if (freshUserData) {
+          setUserData(freshUserData)
+          setFullName(freshUserData.name || "")
+
         }
       }
     })
   }
 
+  const { signOut } = useAuth()
+
   const handleSignOut = async () => {
-    await withLoading('sign-out', async () => {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        toast.error("Error signing out")
-      } else {
-        toast.success("Signed out successfully")
-        // Use direct router push to avoid loading conflicts with auth guard
-        router.push('/auth')
-      }
-    })
+    try {
+      console.log('Profile: Starting sign-out process')
+      await signOut()
+      toast.success("Signed out successfully")
+    } catch (err) {
+      console.error('Exception during sign out:', err)
+      toast.error("Error signing out")
+    }
   }
 
   const handleChangePassword = async () => {
@@ -126,6 +155,7 @@ function ProfileContent() {
     }
 
     await withLoading('change-password', async () => {
+      const supabase = createClient()
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       })
@@ -185,6 +215,23 @@ function ProfileContent() {
                       className="mt-1 bg-gray-50"
                     />
                     <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                  </div>
+                </div>
+                
+                {/* Account Status */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">Account Status</p>
+                    <p className="text-sm text-gray-600">
+                      {userData?.isPro ? "Pro Account" : "Free Account"}
+                    </p>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    userData?.isPro 
+                      ? 'bg-purple-100 text-purple-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {userData?.isPro ? "PRO" : "FREE"}
                   </div>
                 </div>
                 
@@ -319,7 +366,8 @@ function ProfileContent() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Plan</span>
-                    <span className="font-medium">Free</span>
+                    <span className="font-medium">
+                    {userData?.isPro ? "Pro" : "Free Account"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Member Since</span>
@@ -388,8 +436,8 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <AuthGuard>
+    <RouteGuard requireAuth>
       <ProfileContent />
-    </AuthGuard>
+    </RouteGuard>
   )
 } 
