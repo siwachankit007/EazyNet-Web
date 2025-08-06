@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserDataWithFallback, invalidateUserCache } from '@/lib/user-utils'
+import { getUserDataWithFallback } from '@/lib/user-utils'
 
 export async function GET(request: NextRequest) {
   // Handle CORS for Chrome extension
@@ -45,17 +45,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user data including pro status
-    // Invalidate cache first to ensure fresh data
-    invalidateUserCache(session.user.id)
-    
-    // Direct database query to get fresh data
-    const { data: dbUserData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-    
-    const userData = await getUserDataWithFallback(session.user, true) // Force refresh
+    // Use cached data if available, only fetch fresh data if needed
+    const userData = await getUserDataWithFallback(session.user, false) // Don't force refresh
     
     if (!userData) {
       return NextResponse.json({
@@ -73,8 +64,7 @@ export async function GET(request: NextRequest) {
     // Check both database isPro and user metadata isPro
     const isProFromDatabase = userData.isPro || false
     const isProFromMetadata = session.user.user_metadata?.isPro || false
-    const isProFromDirectQuery = dbUserData?.ispro || false
-    const finalIsPro = isProFromDirectQuery || isProFromDatabase || isProFromMetadata
+    const finalIsPro = isProFromDatabase || isProFromMetadata
 
     // Return authenticated user with pro status
     return NextResponse.json({

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback, useRef } from 'react'
 
 interface LoadingContextType {
   loadingStates: Record<string, boolean>
@@ -18,29 +18,45 @@ const LoadingContext = createContext<LoadingContextType | undefined>(undefined)
 export function LoadingProvider({ children }: { children: ReactNode }) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
   const [globalLoading, setGlobalLoadingState] = useState(false)
+  const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const setLoading = (key: string, isLoading: boolean) => {
+  const setLoading = useCallback((key: string, isLoading: boolean) => {
     setLoadingStates(prev => ({
       ...prev,
       [key]: isLoading
     }))
-  }
+  }, [])
 
-  const isLoading = (key: string) => {
+  const isLoading = useCallback((key: string) => {
     return loadingStates[key] || false
-  }
+  }, [loadingStates])
 
-  const setGlobalLoading = (loading: boolean) => {
+  const setGlobalLoading = useCallback((loading: boolean) => {
+    if (globalLoadingTimeoutRef.current) {
+      clearTimeout(globalLoadingTimeoutRef.current)
+      globalLoadingTimeoutRef.current = null
+    }
     setGlobalLoadingState(loading)
-  }
+  }, [])
 
-  const showGlobalLoading = () => {
+  const showGlobalLoading = useCallback(() => {
+    if (globalLoadingTimeoutRef.current) {
+      clearTimeout(globalLoadingTimeoutRef.current)
+      globalLoadingTimeoutRef.current = null
+    }
     setGlobalLoadingState(true)
-  }
+  }, [])
 
-  const hideGlobalLoading = () => {
-    setGlobalLoadingState(false)
-  }
+  const hideGlobalLoading = useCallback(() => {
+    if (globalLoadingTimeoutRef.current) {
+      clearTimeout(globalLoadingTimeoutRef.current)
+    }
+    // Small delay to prevent flickering for very fast operations
+    globalLoadingTimeoutRef.current = setTimeout(() => {
+      setGlobalLoadingState(false)
+      globalLoadingTimeoutRef.current = null
+    }, 100)
+  }, [])
 
   const withLoading = useCallback(async <T,>(key: string, fn: () => Promise<T>): Promise<T> => {
     setLoading(key, true)
@@ -50,13 +66,10 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
       const result = await fn()
       return result
     } finally {
-      // Reduced delay for faster feedback
-      setTimeout(() => {
-        setLoading(key, false)
-        hideGlobalLoading()
-      }, 150)
+      setLoading(key, false)
+      hideGlobalLoading()
     }
-  }, [])
+  }, [setLoading, showGlobalLoading, hideGlobalLoading])
 
   return (
     <LoadingContext.Provider value={{ 
@@ -106,15 +119,9 @@ export function LoadingSpinner({ size = 'sm', color = 'current' }: { size?: 'sm'
 
 function GlobalLoadingOverlay() {
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="relative">
-        {/* Modern animated rings */}
-        <div className="w-16 h-16 border-4 border-white/20 rounded-full animate-pulse"></div>
-        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <div className="absolute top-2 left-2 w-12 h-12 border-4 border-white/10 rounded-full animate-ping"></div>
-        
-        {/* Center dot */}
-        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
+        <div className="w-12 h-12 border-3 border-white/30 rounded-full animate-spin border-t-blue-500"></div>
       </div>
     </div>
   )

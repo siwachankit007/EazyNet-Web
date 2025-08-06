@@ -9,7 +9,14 @@ import { toast } from "sonner"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
 import { logUserData } from "@/lib/utils"
-import { updateLoginDateTime, createUserRecord } from "@/lib/auth-utils"
+import { updateUserActivity, createUserRecord } from "@/lib/auth-utils"
+
+// Helper function for conditional logging
+const log = (message: string, data?: unknown) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`AuthForm: ${message}`, data || '')
+  }
+}
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
@@ -65,24 +72,24 @@ export function AuthForm() {
 
       if (isLogin) {
         // Login
-        console.log('AuthForm: Attempting login for email:', formData.email)
+        log('Attempting login for email:', formData.email)
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         })
 
         if (error) {
-          console.log('AuthForm: Login error:', error.message)
+          log('Login error:', error.message)
           setValidationError(error.message)
           return
         }
 
         logUserData('AuthForm', data.user, { action: 'Login Successful', hasSession: !!data.session })
 
-        // Update loginDateTime in the users table
+        // Update user's last activity timestamp
         if (data.user) {
-          console.log('AuthForm: Updating login date time for user:', data.user.id)
-          await updateLoginDateTime(data.user.id)
+          log('Updating user activity for user:', data.user.id)
+          await updateUserActivity(data.user.id)
         }
 
         toast.success("Login successful!")
@@ -94,7 +101,7 @@ export function AuthForm() {
           return
         }
 
-        console.log('AuthForm: Attempting signup for email:', formData.email, 'name:', formData.fullName)
+        log('Attempting signup for email and name:', { email: formData.email, name: formData.fullName })
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -106,16 +113,16 @@ export function AuthForm() {
         })
 
         if (error) {
-          console.log('AuthForm: Signup error:', error.message)
+          log('Signup error:', error.message)
           setValidationError(error.message)
           return
         }
 
         logUserData('AuthForm', data.user, { action: 'Signup Successful', hasSession: !!data.session })
 
-        // Initialize loginDateTime for new users
+        // Create user record for new users
         if (data.user) {
-          console.log('AuthForm: Creating user record for:', data.user.id)
+          log('Creating user record for:', data.user.id)
           await createUserRecord(data.user, formData.fullName)
         }
 

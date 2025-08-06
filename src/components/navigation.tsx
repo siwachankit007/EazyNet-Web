@@ -90,10 +90,8 @@ export function Navigation() {
   // Fetch user data when user changes
   useEffect(() => {
     if (user) {
-      // Invalidate cache first to ensure fresh data
-      invalidateUserCache(user.id)
       const fetchUserData = async () => {
-        const freshUserData = await getUserDataWithFallback(user, true)
+        const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
         if (freshUserData) {
           setUserData(freshUserData)
         }

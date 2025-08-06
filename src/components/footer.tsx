@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
@@ -176,6 +178,7 @@ export function Footer() {
                 <li><Link href="/#features" className="hover:text-blue-400 transition-colors">Features</Link></li>
                 <li><Link href="/#pricing" className="hover:text-blue-400 transition-colors">Pricing</Link></li>
                 <li><Link href="/#contact" className="hover:text-blue-400 transition-colors">Contact</Link></li>
+                <li><a href="/help-documentation" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Documentation</a></li>
               </ul>
             </div>
             {/* Contact Info (left-aligned, full height) */}

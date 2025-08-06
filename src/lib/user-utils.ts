@@ -10,10 +10,9 @@ export interface UserData {
   email: string
   name?: string
   isPro: boolean
-  loginDateTime?: string
   createdAt: string
   updatedAt: string
-  user_metadata?: any
+  user_metadata?: Record<string, unknown>
 }
 
 /**
@@ -52,7 +51,6 @@ export async function fetchUserData(userId: string, forceRefresh = false): Promi
         email: data.email,
         name: data.name,
         isPro: Boolean(data.ispro), // Database column is lowercase 'ispro'
-        loginDateTime: data.loginDateTime,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         user_metadata: data.user_metadata
@@ -64,10 +62,13 @@ export async function fetchUserData(userId: string, forceRefresh = false): Promi
         timestamp: Date.now()
       })
 
-      logUserData('UserData', { ...data, user_metadata: data.user_metadata }, { 
-        action: 'Database Fetch',
-        isPro: userData.isPro 
-      })
+      // Only log in development and only if verbose logging is enabled
+      if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGGING === 'true') {
+        logUserData('UserData', { ...data, user_metadata: data.user_metadata }, { 
+          action: 'Database Fetch',
+          isPro: userData.isPro 
+        })
+      }
 
       return userData
     }
@@ -84,19 +85,22 @@ export async function fetchUserData(userId: string, forceRefresh = false): Promi
  * @param userId - The user ID to invalidate cache for
  */
 export function invalidateUserCache(userId: string) {
+  // Only log in development and only if verbose logging is enabled
+  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGGING === 'true') {
+    console.log('UserData: Cache invalidated for user:', userId)
+  }
   userDataCache.delete(userId)
-  console.log('UserData: Cache invalidated for user:', userId)
 }
 
 /**
  * Clears all user data cache
  */
 export function clearUserCache() {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('UserData: All cache cleared')
+  }
   userDataCache.clear()
-  console.log('UserData: All cache cleared')
 }
-
-
 
 /**
  * Merges session user data with fresh database data
@@ -106,27 +110,33 @@ export function clearUserCache() {
  */
 export async function getUserDataWithFallback(sessionUser: { [key: string]: unknown } | null | { id: string; email?: string; user_metadata?: unknown }, forceRefresh = false): Promise<UserData | null> {
   if (!sessionUser?.id) {
-    console.log('UserData: No session user ID provided')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('UserData: No session user ID provided')
+    }
     return null
   }
 
   // Try to get fresh data from database
-  const dbData = await fetchUserData(sessionUser.id, forceRefresh)
+  const dbData = await fetchUserData(sessionUser.id as string, forceRefresh)
   
   if (dbData) {
     return dbData
   }
 
   // Fallback to session data if database fetch fails
-  console.log('UserData: Falling back to session data for user:', sessionUser.id)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('UserData: Falling back to session data for user:', sessionUser.id)
+  }
+  
+  const sessionUserTyped = sessionUser as { id: string; email?: string; user_metadata?: Record<string, unknown>; created_at?: string; updated_at?: string }
+  
   return {
-    id: sessionUser.id,
-    email: sessionUser.email,
-    name: sessionUser.user_metadata?.name,
-    isPro: sessionUser.user_metadata?.isPro || false,
-    loginDateTime: sessionUser.user_metadata?.loginDateTime,
-    createdAt: sessionUser.created_at,
-    updatedAt: sessionUser.updated_at,
-    user_metadata: sessionUser.user_metadata
+    id: sessionUserTyped.id,
+    email: sessionUserTyped.email || '',
+    name: sessionUserTyped.user_metadata?.name as string | undefined,
+    isPro: Boolean(sessionUserTyped.user_metadata?.isPro),
+    createdAt: sessionUserTyped.created_at || new Date().toISOString(),
+    updatedAt: sessionUserTyped.updated_at || new Date().toISOString(),
+    user_metadata: sessionUserTyped.user_metadata
   }
 } 

@@ -1,43 +1,82 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Chrome, Settings, Download, Search } from "lucide-react"
+import { Globe, Settings, Download, Search } from "lucide-react"
+import { toast } from "sonner"
+
+// TypeScript declarations for Chrome extension API
+interface ChromeRuntime {
+  sendMessage: (extensionId: string, message: Record<string, unknown>, callback?: (response: unknown) => void) => void
+  lastError?: { message: string }
+}
+
+interface ChromeAPI {
+  runtime?: ChromeRuntime
+}
+
+interface ExtendedWindow extends Window {
+  chrome?: ChromeAPI
+}
 
 export function QuickActions() {
+  // Shared function to open extension
+  const openExtension = () => {
+    const extendedWindow = window as ExtendedWindow
+    if (typeof window !== 'undefined' && extendedWindow.chrome?.runtime) {
+      console.log('Attempting to send message to extension...')
+      extendedWindow.chrome.runtime.sendMessage('ghkblcolgioaoajmhciloahjjcbhekbi', { action: 'open' }, (response: unknown) => {
+        console.log('Extension response:', response)
+        if (extendedWindow.chrome?.runtime?.lastError) {
+          console.log('Extension error:', extendedWindow.chrome.runtime.lastError)
+          toast.success('Press Ctrl+Shift+E to open the EazyNet extension, or click the extension icon in your browser toolbar.')
+        } else if (response && typeof response === 'object' && 'success' in response) {
+          const responseObj = response as { success: boolean; data?: Record<string, unknown>; error?: string }
+          if (responseObj.success) {
+            if (responseObj.data?.method === 'highlight') {
+              toast.success('Extension icon highlighted! Please click the EazyNet icon in your browser toolbar.')
+            }
+            // No toast for successful popup opening - action is done
+          } else {
+            toast.error(`Extension error: ${responseObj.error || 'Unknown error'}`)
+          }
+        } else {
+          // No response or invalid response
+          toast.success('Press Ctrl+Shift+E to open the EazyNet extension, or click the extension icon in your browser toolbar.')
+        }
+      })
+    } else {
+      // Chrome runtime not available
+      console.log('Chrome runtime not available')
+      toast.success('Press Ctrl+Shift+E to open the EazyNet extension, or click the extension icon in your browser toolbar.')
+    }
+  }
+
   const actions = [
     {
       title: "Open Extension",
-      description: "Launch EazyNet tab manager",
-      icon: <Chrome className="h-5 w-5" />,
-      action: () => {
-        // In a real app, this would communicate with the extension
-        window.open('chrome-extension://your-extension-id/popup.html', '_blank')
-      }
+      description: "Launch EazyNet tab manager (Ctrl+Shift+E)",
+      icon: <Globe className="h-5 w-5" />,
+      action: openExtension
     },
     {
       title: "Search Tabs",
       description: "Find tabs across all windows",
       icon: <Search className="h-5 w-5" />,
-      action: () => {
-        // Open search interface
-        console.log("Opening search interface")
-      }
+      action: openExtension
     },
     {
       title: "Sync Settings",
-      description: "Update extension preferences",
+      description: "Update extension preferences (Coming Soon)",
       icon: <Settings className="h-5 w-5" />,
       action: () => {
-        // Sync settings with extension
-        console.log("Syncing settings")
+        toast.success('Sync Settings feature is currently under development. This will allow you to synchronize your extension preferences across devices.')
       }
     },
     {
       title: "Export Data",
-      description: "Download your tab data",
+      description: "Download your tab data (Coming Soon)",
       icon: <Download className="h-5 w-5" />,
       action: () => {
-        // Export functionality
-        console.log("Exporting data")
+        toast.success('Export Data feature is coming soon. This will allow you to export your tab groups and settings for backup or migration purposes.')
       }
     }
   ]

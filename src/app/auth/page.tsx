@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { AuthForm } from "@/components/auth-form"
 import { RouteGuard } from "@/components/route-guard"
 
@@ -22,6 +23,7 @@ export default function AuthPage() {
             </CardContent>
           </Card>
         </div>
+        <Footer />
       </div>
     </RouteGuard>
   )
