@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDownIcon } from "@heroicons/react/24/outline"
+import { UpgradeButton } from "@/components/payment/upgrade-button"
 
 // Interactive FAQ Component
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -21,6 +22,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
       <button 
         className="cursor-pointer w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition group"
         onClick={() => setIsOpen(!isOpen)}
+        suppressHydrationWarning
       >
         <span className="font-medium text-gray-900 text-base group-hover:text-blue-600">{question}</span>
         <motion.div
@@ -300,7 +302,7 @@ export default function OnboardingPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          Welcome to EazyNet 🎉
+          Welcome to EazyNet !
         </motion.h1>
         
         <motion.p 
@@ -404,14 +406,12 @@ export default function OnboardingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <motion.a 
-            href="#" 
+          <UpgradeButton 
             className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            planType="pro"
           >
             Upgrade to Pro
-          </motion.a>
+          </UpgradeButton>
         </motion.div>
       </section>
 
@@ -445,14 +445,12 @@ export default function OnboardingPage() {
            whileInView={{ opacity: 1, y: 0 }}
            viewport={{ once: true }}
          >
-           <motion.a 
-             href="#" 
+           <UpgradeButton 
              className="upgrade-pro-btn inline-block px-8 py-3 bg-white text-gray-800 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
+             planType="pro"
            >
              Upgrade to Pro
-           </motion.a>
+           </UpgradeButton>
          </motion.div>
       </section>
 
@@ -497,14 +495,12 @@ export default function OnboardingPage() {
            whileInView={{ opacity: 1, y: 0 }}
            viewport={{ once: true }}
          >
-           <motion.a 
-             href="#" 
+           <UpgradeButton 
              className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
+             planType="pro"
            >
              Upgrade to Pro
-           </motion.a>
+           </UpgradeButton>
          </motion.div>
       </section>
 

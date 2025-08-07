@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle subscription management
     document.getElementById('manage-subscription').addEventListener('click', () => {
-        // This will be implemented when we add Stripe integration
+        // This will be implemented when we add payment gateway integration
         showToast('Subscription management coming soon!');
     });
 

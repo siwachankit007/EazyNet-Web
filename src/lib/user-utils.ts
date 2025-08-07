@@ -10,9 +10,26 @@ export interface UserData {
   email: string
   name?: string
   isPro: boolean
+  isTrial?: boolean
   createdAt: string
   updatedAt: string
   user_metadata?: Record<string, unknown>
+  subscription?: SubscriptionData
+}
+
+export interface SubscriptionData {
+  id: string
+  user_id: string
+  plan_type: 'trial' | 'pro'
+  status: 'active' | 'cancelled' | 'expired' | 'authenticated' | 'created'
+  is_trial: boolean
+  trial_started_at?: string
+  trial_ends_at?: string
+  current_period_start?: string
+  current_period_end?: string
+  cancelled_at?: string
+  created_at: string
+  updated_at: string
 }
 
 /**
@@ -33,47 +50,69 @@ export async function fetchUserData(userId: string, forceRefresh = false): Promi
   }
 
   try {
-    
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    // Fetch user data from auth.users and profiles
+    const [authResult, profileResult] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+    ])
 
-    if (error) {
-      console.error('UserData: Error fetching user data:', error)
+    if (authResult.error) {
+      console.error('UserData: Error fetching auth user:', authResult.error)
       return null
     }
 
-    if (data) {
-      const userData: UserData = {
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        isPro: Boolean(data.ispro), // Database column is lowercase 'ispro'
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        user_metadata: data.user_metadata
-      }
-
-      // Cache the result
-      userDataCache.set(userId, {
-        data: userData,
-        timestamp: Date.now()
-      })
-
-      // Only log in development and only if verbose logging is enabled
-      if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGGING === 'true') {
-        logUserData('UserData', { ...data, user_metadata: data.user_metadata }, { 
-          action: 'Database Fetch',
-          isPro: userData.isPro 
-        })
-      }
-
-      return userData
+    const authUser = authResult.data.user
+    if (!authUser) {
+      console.error('UserData: No auth user found')
+      return null
     }
 
-    return null
+    // Fetch active subscription for the user
+    const { data: subscriptionData, error: subscriptionError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+      console.error('UserData: Error fetching subscription data:', subscriptionError)
+    }
+
+    const user: UserData = {
+      id: authUser.id,
+      email: authUser.email || '',
+      name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || '',
+      isPro: Boolean(subscriptionData?.plan_type === 'pro' || subscriptionData?.plan_type === 'trial'),
+      isTrial: Boolean(subscriptionData?.is_trial),
+      createdAt: authUser.created_at || new Date().toISOString(),
+      updatedAt: profileResult?.data?.updated_at || authUser.updated_at || new Date().toISOString(),
+      user_metadata: profileResult?.data?.preferences || authUser.user_metadata,
+      subscription: subscriptionData || undefined
+    }
+
+    // Cache the result
+    userDataCache.set(userId, {
+      data: user,
+      timestamp: Date.now()
+    })
+
+    // Only log in development and only if verbose logging is enabled
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGGING === 'true') {
+      logUserData('UserData', { ...user, user_metadata: user.user_metadata }, { 
+        action: 'Database Fetch',
+        isPro: user.isPro,
+        hasSubscription: !!subscriptionData
+      })
+    }
+
+    return user
   } catch (error) {
     console.error('UserData: Exception fetching user data:', error)
     return null
@@ -135,6 +174,7 @@ export async function getUserDataWithFallback(sessionUser: { [key: string]: unkn
     email: sessionUserTyped.email || '',
     name: sessionUserTyped.user_metadata?.name as string | undefined,
     isPro: Boolean(sessionUserTyped.user_metadata?.isPro),
+    isTrial: Boolean(sessionUserTyped.user_metadata?.isTrial),
     createdAt: sessionUserTyped.created_at || new Date().toISOString(),
     updatedAt: sessionUserTyped.updated_at || new Date().toISOString(),
     user_metadata: sessionUserTyped.user_metadata

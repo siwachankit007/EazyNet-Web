@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ProBenefits } from "@/components/pro-benefits"
 import { QuickActions } from "@/components/quick-actions"
 import { UserStats } from "@/components/user-stats"
+import { SubscriptionManager } from "@/components/payment/subscription-manager"
+import { TrialButton } from "@/components/payment/trial-button"
 import { RouteGuard } from "@/components/route-guard"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -115,9 +117,9 @@ function DashboardContent() {
           </div>
           
           <div className="flex gap-3">
-            <Button variant="secondary">
+            <TrialButton variant="secondary">
               Start Free Trial
-            </Button>
+            </TrialButton>
             <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
               Manage Subscription
             </Button>
@@ -180,6 +182,9 @@ function DashboardContent() {
           {/* Sidebar */}
           <div className="flex flex-col gap-8">
             <ProBenefits />
+            
+            {/* Subscription Management */}
+            <SubscriptionManager />
             
             {/* Quick Links */}
             <Card>

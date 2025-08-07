@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Crown, Brain, Zap, Globe, Heart, Settings } from "lucide-react"
+import { UpgradeButton } from "@/components/payment/upgrade-button"
 
 export function ProBenefits() {
   const benefits = [
@@ -60,9 +60,12 @@ export function ProBenefits() {
           ))}
         </div>
         
-        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+        <UpgradeButton 
+          className="w-full bg-purple-600 hover:bg-purple-700"
+          planType="pro"
+        >
           Upgrade to Pro - $4.99/month
-        </Button>
+        </UpgradeButton>
         
         <p className="text-xs text-center text-gray-500">
           30-day money-back guarantee

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { SubscriptionManager } from "@/components/payment/subscription-manager"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { toast } from "sonner"
@@ -123,6 +124,7 @@ function PolicyModal({ isOpen, onClose, type }: {
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl leading-none"
           aria-label="Close modal"
+          suppressHydrationWarning
         >
           &times;
         </button>
@@ -200,9 +202,8 @@ function ProfileContent() {
           data: { name: fullName }
         }),
         supabase
-          .from('users')
+          .from('profiles')
           .update({ 
-            name: fullName,
             updated_at: new Date().toISOString()
           })
           .eq('id', user?.id)
@@ -466,22 +467,7 @@ function ProfileContent() {
           <div className="space-y-6">
             {/* Account Status */}
              {/* Subscription Management */}
-             <Card>
-               <CardHeader>
-                 <CardTitle>Subscription</CardTitle>
-                 <CardDescription>
-                   Manage your trial and subscription
-                 </CardDescription>
-               </CardHeader>
-               <CardContent className="space-y-3">
-                 <Button className="w-full">
-                   Start Trial
-                 </Button>
-                 <Button variant="outline" className="w-full">
-                   Manage Subscription
-                 </Button>
-               </CardContent>
-             </Card>
+             <SubscriptionManager />
             <Card>
               <CardHeader>
                 <CardTitle>Account Status</CardTitle>

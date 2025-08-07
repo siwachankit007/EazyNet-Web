@@ -11,7 +11,7 @@ export async function updateUserActivity(userId: string): Promise<void> {
     const supabase = createClient()
     
     const { error } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ 
         updated_at: new Date().toISOString()
       })
@@ -43,15 +43,12 @@ export async function createUserRecord(user: User, fullName: string): Promise<vo
   try {
     const supabase = createClient()
     const { error } = await supabase
-      .from('users')
+      .from('profiles')
       .insert({
         id: user.id,
-        email: user.email,
-        name: fullName,
-        ispro: false, // Default to free account
         created_at: user.created_at,
         updated_at: new Date().toISOString(),
-        user_metadata: user.user_metadata
+        preferences: user.user_metadata
       })
 
     if (error) {

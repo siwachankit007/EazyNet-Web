@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { UpgradeButton } from "@/components/payment/upgrade-button"
 
 export function PricingSection() {
   return (
@@ -25,11 +26,12 @@ export function PricingSection() {
           <h3 className="text-xl font-semibold mb-4">Premium (Coming Soon)</h3>
           <p className="text-gray-600 mb-4">Unlock advanced features, additional customization, and more.</p>
           <p className="font-semibold text-lg">$4.99 / month</p>
-          <Button asChild className="mt-4 inline-block px-6 py-3 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-md transition duration-300">
-            <a href="#" id="upgrade-pro-btn">
-              Upgrade
-            </a>
-          </Button>
+          <UpgradeButton 
+            className="mt-4 inline-block px-6 py-3 bg-blue-600 text-white px-5 py-2 rounded-xl font-semibold hover:shadow-md transition duration-300"
+            planType="pro"
+          >
+            Upgrade
+          </UpgradeButton>
         </div>
       </div>
     </section>

@@ -225,6 +225,7 @@ export function Footer() {
             <button 
               onClick={() => openModal('privacy')}
               className="policy-link hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-1"
+              suppressHydrationWarning
             >
               Privacy Policy
             </button>
@@ -232,6 +233,7 @@ export function Footer() {
             <button 
               onClick={() => openModal('terms')}
               className="policy-link hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-1"
+              suppressHydrationWarning
             >
               Terms & Conditions
             </button>
