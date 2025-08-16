@@ -1,7 +1,8 @@
 "use client"
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { useRouter } from 'next/navigation'
 
 interface RouteGuardProps {
   children: ReactNode
@@ -17,6 +18,21 @@ export function RouteGuard({
   fallback = null 
 }: RouteGuardProps) {
   const { isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  // Redirect authenticated users away from guest-only pages (like auth page)
+  useEffect(() => {
+    if (!isLoading && requireGuest && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isLoading, requireGuest, isAuthenticated, router])
+
+  // Redirect unauthenticated users away from protected pages
+  useEffect(() => {
+    if (!isLoading && requireAuth && !isAuthenticated) {
+      router.push('/auth')
+    }
+  }, [isLoading, requireAuth, isAuthenticated, router])
 
   // Show loading while checking auth
   if (isLoading) {
@@ -54,7 +70,7 @@ export function RouteGuard({
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20 text-center">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Already Signed In</h2>
-          <p className="text-gray-600">You are already signed in. Redirecting...</p>
+          <p className="text-gray-600">Redirecting to dashboard...</p>
         </div>
       </div>
     )

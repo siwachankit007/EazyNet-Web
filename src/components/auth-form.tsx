@@ -4,12 +4,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
 import { logUserData } from "@/lib/utils"
-import { updateUserActivity, createUserRecord } from "@/lib/auth-utils"
+import { eazynetAPI } from "@/lib/eazynet-api"
+import { useAuth } from "@/lib/auth-context"
+import { createClient } from "@/lib/supabase/client"
 
 // Helper function for conditional logging
 const log = (message: string, data?: unknown) => {
@@ -26,11 +27,11 @@ export function AuthForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    fullName: ""
+    name: ""
   })
   
-  const supabase = createClient()
   const { isLoading, withLoading } = useLoading()
+  const { updateAuthState } = useAuth()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -73,61 +74,113 @@ export function AuthForm() {
       if (isLogin) {
         // Login
         log('Attempting login for email:', formData.email)
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        })
+        try {
+          const response = await eazynetAPI.login({
+            email: formData.email,
+            password: formData.password,
+          })
 
-        if (error) {
-          log('Login error:', error.message)
-          setValidationError(error.message)
+          if (response.token) {
+            console.log('AuthForm: Login successful, token received:', response.token)
+            console.log('AuthForm: Login response full:', response)
+            
+            // Check if we have user data in the login response
+            if (response.user && response.user.name) {
+              console.log('AuthForm: Using user data from login response:', response.user)
+              const userData = {
+                id: response.user.id,
+                email: response.user.email,
+                name: response.user.name
+              }
+              
+              const sessionData = {
+                token: response.token,
+                refreshToken: response.refreshToken,
+                user: userData
+              }
+              
+              updateAuthState(userData, sessionData)
+            } else {
+              console.log('AuthForm: No user data in login response, will fetch separately')
+              // For login, we only need to store the token
+              // User profile data will be fetched separately when needed
+              const sessionData = {
+                token: response.token,
+                refreshToken: response.refreshToken,
+                user: null // We'll fetch user data separately
+              }
+              
+              updateAuthState(null, sessionData)
+            }
+            
+            toast.success("Login successful!")
+            // Auth context will handle the redirect automatically
+          }
+        } catch (error) {
+          log('Login exception:', error)
+          // Extract the specific error message from the Error object
+          const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.'
+          setValidationError(errorMessage)
           return
         }
-
-        logUserData('AuthForm', data.user, { action: 'Login Successful', hasSession: !!data.session })
-
-        // Update user's last activity timestamp
-        if (data.user) {
-          log('Updating user activity for user:', data.user.id)
-          await updateUserActivity(data.user.id)
-        }
-
-        toast.success("Login successful!")
-        // Auth context will handle the redirect automatically
       } else {
         // Sign up
-        if (!formData.fullName.trim()) {
+        if (!formData.name.trim()) {
           setValidationError("Please enter your full name")
           return
         }
 
-        log('Attempting signup for email and name:', { email: formData.email, name: formData.fullName })
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName,
-            }
-          }
-        })
+        log('Attempting signup for email and name:', { email: formData.email, name: formData.name })
+        try {
+          const response = await eazynetAPI.register({
+            email: formData.email,
+            password: formData.password,
+            name: formData.name,
+          })
 
-        if (error) {
-          log('Signup error:', error.message)
-          setValidationError(error.message)
+          if (response.token) {
+            console.log('AuthForm: Signup successful, token received:', response.token)
+            
+            // For signup, we might get user data immediately, or we can fetch it later
+            if (response.user) {
+              const userData = {
+                id: response.user.id,
+                email: response.user.email,
+                name: response.user.name
+              }
+              
+              console.log('AuthForm: Signup API response:', response)
+              console.log('AuthForm: Created signup userData:', userData)
+              
+              logUserData('AuthForm', userData, { action: 'Signup Successful', hasSession: true })
+              
+              const sessionData = {
+                token: response.token,
+                refreshToken: response.refreshToken,
+                user: userData
+              }
+              console.log('AuthForm: Created signup sessionData:', sessionData)
+              updateAuthState(userData, sessionData)
+            } else {
+              // No user data in response, just store the token
+              const sessionData = {
+                token: response.token,
+                refreshToken: response.refreshToken,
+                user: null
+              }
+              updateAuthState(null, sessionData)
+            }
+            
+            toast.success("Account created successfully!")
+            setIsLogin(true)
+          }
+        } catch (error) {
+          log('Signup exception:', error)
+          // Extract the specific error message from the Error object
+          const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.'
+          setValidationError(errorMessage)
           return
         }
-
-        logUserData('AuthForm', data.user, { action: 'Signup Successful', hasSession: !!data.session })
-
-        // Create user record for new users
-        if (data.user) {
-          log('Creating user record for:', data.user.id)
-          await createUserRecord(data.user, formData.fullName)
-        }
-
-        toast.success("Account created! Please check your email to verify your account.")
-        setIsLogin(true)
       }
     })
   }
@@ -135,6 +188,7 @@ export function AuthForm() {
   const handleGoogleAuth = async () => {
     setValidationError(null) // Clear previous errors
     await withLoading('google-auth', async () => {
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -198,15 +252,15 @@ export function AuthForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="name">Full Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                id="fullName"
-                name="fullName"
+                id="name"
+                name="name"
                 type="text"
                 placeholder="Enter your full name"
-                value={formData.fullName}
+                value={formData.name}
                 onChange={handleInputChange}
                 className="pl-10"
                 required={!isLogin}

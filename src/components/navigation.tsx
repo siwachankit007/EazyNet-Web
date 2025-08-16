@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, User, Settings, LogOut } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
 import { useAuth } from "@/lib/auth-context"
-import { getUserDataWithFallback, invalidateUserCache, type UserData } from "@/lib/user-utils"
+import { getUserDataWithFallback, type UserData } from "@/lib/user-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,9 +53,9 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('')
-  const [userData, setUserData] = useState<UserData | null>(null)
+
   const { navigateWithLoading } = useNavigationWithLoading()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, fetchUserProfile } = useAuth()
 
   useEffect(() => {
     let ticking = false
@@ -90,17 +90,47 @@ export function Navigation() {
   // Fetch user data when user changes
   useEffect(() => {
     if (user) {
-      const fetchUserData = async () => {
-        const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
-        if (freshUserData) {
-          setUserData(freshUserData)
+      console.log('Navigation received user:', user)
+      console.log('User type check - has name:', 'name' in user)
+      console.log('User type check - has fullName:', 'fullName' in user)
+      console.log('User type check - has user_metadata:', 'user_metadata' in user)
+      
+      // Check if this is an EazyNet user (has name property)
+      if ('name' in user) {
+        console.log('Detected EazyNet user with name:', user.name)
+        // For EazyNet users, create UserData from the user object directly
+        const eazyNetUserData: UserData = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isPro: false, // Default value, can be updated later if needed
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
+        console.log('Created EazyNet UserData:', eazyNetUserData)
+      } else {
+        console.log('Detected Supabase user')
+        // For Supabase users, fetch additional data
+        const fetchUserData = async () => {
+                  const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
+        if (freshUserData) {
+          console.log('Fetched Supabase user data:', freshUserData)
+        }
+        }
+        fetchUserData()
       }
-      fetchUserData()
     } else {
-      setUserData(null)
+      console.log('No user, clearing user data')
     }
   }, [user])
+
+  // Fetch user profile if not available
+  useEffect(() => {
+    if (!user && isAuthenticated) {
+      console.log('Navigation: No user but authenticated, fetching profile...')
+      fetchUserProfile()
+    }
+  }, [user, isAuthenticated, fetchUserProfile])
 
   const handleSmoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
     e.preventDefault()
@@ -245,7 +275,7 @@ export function Navigation() {
                 <Button variant="ghost" className="flex items-center space-x-2 ml-4">
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {user?.user_metadata?.name || user?.email?.split('@')[0]}
+                    {'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0])}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -378,7 +408,7 @@ export function Navigation() {
                     <User className="h-4 w-4" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
-                        {user?.user_metadata?.name || user?.email?.split('@')[0]}
+                        {'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0])}
                       </p>
                     </div>
                   </div>

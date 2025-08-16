@@ -29,7 +29,7 @@ interface ExtendedWindow extends Window {
 }
 
 function DashboardContent() {
-  const { user } = useAuth()
+  const { user, fetchUserProfile } = useAuth()
   const [extensionStatus, setExtensionStatus] = useState({
     isActive: false,
     lastSync: null as string | null,
@@ -56,6 +56,14 @@ function DashboardContent() {
 
     checkExtensionStatus()
   }, [])
+
+  // Fetch user profile when component mounts
+  useEffect(() => {
+    if (!user) {
+      console.log('Dashboard: No user, fetching profile...')
+      fetchUserProfile()
+    }
+  }, [user, fetchUserProfile])
 
   const openExtension = () => {
     // Try to communicate with extension via chrome.runtime.sendMessage
@@ -109,7 +117,7 @@ function DashboardContent() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome back, {user?.user_metadata?.name || user?.email?.split('@')[0]}!
+              Welcome back, {user && 'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0])}!
             </h1>
             <p className="text-white/80">
               Manage your tab organization and boost your productivity

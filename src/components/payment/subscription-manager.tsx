@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
@@ -28,15 +28,7 @@ export function SubscriptionManager() {
   const [isLoading, setIsLoading] = useState(true)
   const { withLoading } = useLoading()
 
-  useEffect(() => {
-    if (user) {
-      fetchSubscription()
-    } else {
-      setIsLoading(false)
-    }
-  }, [user])
-
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     if (!user) return
 
     try {
@@ -51,7 +43,15 @@ export function SubscriptionManager() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchSubscription()
+    } else {
+      setIsLoading(false)
+    }
+  }, [user, fetchSubscription])
 
   const handleCancelSubscription = async () => {
     if (!subscription) return
@@ -105,7 +105,7 @@ export function SubscriptionManager() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">
-            You don't have an active subscription. Upgrade to unlock premium features.
+            You don&apos;t have an active subscription. Upgrade to unlock premium features.
           </p>
           <Button>
             Upgrade to Pro

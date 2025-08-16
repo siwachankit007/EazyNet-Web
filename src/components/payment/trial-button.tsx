@@ -11,17 +11,13 @@ interface TrialButtonProps {
   size?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
   children: React.ReactNode
-  successUrl?: string
-  cancelUrl?: string
 }
 
 export function TrialButton({
   variant = 'default',
   size = 'default',
   className = '',
-  children,
-  successUrl,
-  cancelUrl
+  children
 }: TrialButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()

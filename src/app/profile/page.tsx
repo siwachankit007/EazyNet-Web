@@ -14,7 +14,7 @@ import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
 import { logUserData } from "@/lib/utils"
 import { getUserDataWithFallback, type UserData } from "@/lib/user-utils"
-import { createClient } from "@/lib/supabase/client"
+import { eazynetAPI } from "@/lib/eazynet-api"
 import {
   Dialog,
   DialogContent,
@@ -138,7 +138,7 @@ function PolicyModal({ isOpen, onClose, type }: {
 }
 
 function ProfileContent() {
-  const { user } = useAuth()
+  const { user, fetchUserProfile } = useAuth()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [fullName, setFullName] = useState("")
@@ -170,66 +170,66 @@ function ProfileContent() {
 
   useEffect(() => {
     if (user) {
-      // Fetch fresh user data from database with fallback to session
-      const getUserData = async () => {
-        const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
-        if (freshUserData) {
-          setUserData(freshUserData)
-          setFullName(freshUserData.name || "")
-          setEmail(freshUserData.email || "")
-        } else {
-          // Fallback to session data
-          setFullName(user.user_metadata?.name || "")
-          setEmail(user.email || "")
-          if (process.env.NODE_ENV === 'development') {
-            logUserData('Profile', user, { action: 'User Data Set (Session Fallback)' })
+      // Check if this is an EazyNet user (has name property)
+      if ('name' in user) {
+        // For EazyNet users, use the user data directly
+        setUserData({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isPro: false, // Default value, can be updated later if needed
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+        setFullName(user.name)
+        setEmail(user.email)
+      } else {
+        // For Supabase users, fetch additional data
+        const getUserData = async () => {
+          const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
+          if (freshUserData) {
+            setUserData(freshUserData)
+            setFullName(freshUserData.name || "")
+            setEmail(freshUserData.email || "")
+          } else {
+            // Fallback to session data
+            setFullName(user.user_metadata?.name || "")
+            setEmail(user.email || "")
+            if (process.env.NODE_ENV === 'development') {
+              logUserData('Profile', user, { action: 'User Data Set (Session Fallback)' })
+            }
           }
         }
+        getUserData()
       }
-      getUserData()
     }
   }, [user])
+
+  // Fetch user profile if not available
+  useEffect(() => {
+    if (!user) {
+      console.log('Profile: No user, fetching profile...')
+      fetchUserProfile()
+    }
+  }, [user, fetchUserProfile])
 
 
 
   const handleUpdateProfile = async () => {
     console.log('Profile: Updating profile for user:', user?.id, 'new name:', fullName)
     await withLoading('update-profile', async () => {
-      const supabase = createClient()
-      // Update both auth metadata and database table
-      const [authResult, dbResult] = await Promise.all([
-        supabase.auth.updateUser({
-          data: { name: fullName }
-        }),
-        supabase
-          .from('profiles')
-          .update({ 
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user?.id)
-      ])
+      try {
+        await eazynetAPI.updateProfile({
+          fullname: fullName
+        })
 
-      console.log('Profile: Update results:', {
-        authError: authResult.error,
-        dbError: dbResult.error,
-        authData: authResult.data,
-        dbData: dbResult.data
-      })
-
-      if (authResult.error || dbResult.error) {
-        toast.error("Failed to update profile")
-        console.error('Auth error:', authResult.error)
-        console.error('DB error:', dbResult.error)
-      } else {
         toast.success("Profile updated successfully")
         setIsEditing(false)
         
-        // Refresh user data from database
-        const freshUserData = await getUserDataWithFallback(user!, false) // Don't force refresh
-        if (freshUserData) {
-          setUserData(freshUserData)
-          setFullName(freshUserData.name || "")
-        }
+        // TODO: Update user data in auth context when updateAuthState is implemented
+      } catch (error) {
+        toast.error("Failed to update profile")
+        console.error('Profile update exception:', error)
       }
     })
   }
@@ -280,19 +280,15 @@ function ProfileContent() {
     }
 
     await withLoading('change-password', async () => {
-      const supabase = createClient()
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      })
-
-      if (error) {
-        toast.error("Failed to change password")
-        console.error('Password change error:', error)
-      } else {
-        toast.success("Password changed successfully")
+      try {
+        // TODO: Implement password change endpoint in EazyNet backend
+        toast.info("Password change functionality coming soon in EazyNet backend!")
         setIsPasswordDialogOpen(false)
         setNewPassword("")
         setConfirmPassword("")
+      } catch (error) {
+        toast.error("Failed to change password")
+        console.error('Password change error:', error)
       }
     })
   }
@@ -482,13 +478,13 @@ function ProfileContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Member Since</span>
                     <span className="font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                      N/A
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Last Sign In</span>
                     <span className="font-medium">
-                      {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'N/A'}
+                      N/A
                     </span>
                   </div>
                 </div>

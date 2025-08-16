@@ -1,17 +1,38 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { eazynetAPI } from '@/lib/eazynet-api'
 import { createClient } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
 import { useLoading } from '@/components/loading-context'
+import type { User, Session } from '@supabase/supabase-js'
+
+// Define user and session types for both authentication methods
+interface EazyNetUser {
+  id: string
+  email: string
+  name: string
+}
+
+interface EazyNetSession {
+  token: string
+  refreshToken: string
+  user: EazyNetUser | null
+}
+
+// Union type for user - can be either EazyNet or Supabase user
+type AuthUser = EazyNetUser | User
+type AuthSession = EazyNetSession | Session
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
+  session: AuthSession | null
   isLoading: boolean
   signOut: () => Promise<void>
   isAuthenticated: boolean
+  updateAuthState: (user: EazyNetUser | null, session: EazyNetSession) => void
+  updateSupabaseAuthState: (user: User, session: Session) => void
+  fetchUserProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,19 +49,19 @@ const PROTECTED_ROUTES = ['/dashboard', '/profile']
 const AUTH_ROUTES = ['/auth']
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const isRedirectingRef = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
+  const supabase = createClient()
 
   // Check if current route requires auth checking
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
-  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route))
-  const requiresAuthCheck = isProtectedRoute || isAuthRoute
+  const isProtectedRoute = useMemo(() => PROTECTED_ROUTES.some(route => pathname.startsWith(route)), [pathname])
+  const isAuthRoute = useMemo(() => AUTH_ROUTES.some(route => pathname.startsWith(route)), [pathname])
+  const requiresAuthCheck = useMemo(() => isProtectedRoute || isAuthRoute, [isProtectedRoute, isAuthRoute])
 
   // Centralized redirect logic with debouncing
   const handleRedirect = useCallback((targetPath: string) => {
@@ -77,29 +98,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         log('Getting initial session for protected/auth route:', pathname)
-        const { data: { session } } = await supabase.auth.getSession()
         
-        if (!isMounted) return
+                 // Check if user is authenticated via EazyNet backend
+         if (eazynetAPI.isAuthenticated()) {
+           const tokenUser = eazynetAPI.getUserFromToken()
+           console.log('AuthContext: JWT token decoded:', tokenUser)
+           if (tokenUser) {
+             // Create temporary user data from token (will be updated with fresh data)
+             const tempUserData: EazyNetUser = {
+               id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
+               email: (tokenUser.email as string) || '',
+               name: (tokenUser.name as string) || 'User'
+             }
+             
+             const sessionData: EazyNetSession = {
+               token: eazynetAPI.getToken()!,
+               refreshToken: eazynetAPI.getRefreshToken()!,
+               user: tempUserData
+             }
+             
+             log('Initial EazyNet session loaded from token', {
+               hasUser: !!tempUserData,
+               userEmail: tempUserData.email,
+               userName: tempUserData.name
+             })
 
-        log('Initial session loaded', {
-          hasUser: !!session?.user,
-          userEmail: session?.user?.email
-        })
+             setSession(sessionData)
+             setUser(tempUserData)
+             setIsLoading(false)
 
-        setSession(session)
-        setUser(session?.user ?? null)
-        setIsLoading(false)
+             // Fetch fresh profile data from backend
+             try {
+               console.log('AuthContext: Fetching fresh profile data after token auth...')
+               const profileData = await eazynetAPI.getProfile()
+               console.log('AuthContext: Fresh profile data received:', profileData)
+               if (profileData && profileData.name !== 'User') {
+                 const freshUserData: EazyNetUser = {
+                   id: profileData.id,
+                   email: profileData.email,
+                   name: profileData.name
+                 }
+                 console.log('AuthContext: Updating user with fresh profile data:', freshUserData)
+                 setUser(freshUserData)
+                 
+                 // Update session with fresh user data
+                 const updatedSessionData: EazyNetSession = {
+                   ...sessionData,
+                   user: freshUserData
+                 }
+                 setSession(updatedSessionData)
+               }
+             } catch (error) {
+               console.error('Error fetching fresh profile data:', error)
+               // Keep using token data if profile fetch fails
+             }
 
-        // Handle initial redirect based on session
-        if (session?.user) {
-          // User is authenticated
-          if (isAuthRoute) {
-            handleRedirect('/dashboard')
-          }
+             // Handle initial redirect based on session
+             if (isAuthRoute) {
+               handleRedirect('/dashboard')
+             }
+           } else {
+             // Invalid token, clear and redirect
+             eazynetAPI.logout()
+             if (isProtectedRoute) {
+               handleRedirect('/auth')
+             }
+             setIsLoading(false)
+           }
         } else {
-          // User is not authenticated
-          if (isProtectedRoute) {
-            handleRedirect('/auth')
+          // Check if user is authenticated via Supabase (Google OAuth)
+          const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+          
+          if (supabaseSession?.user) {
+            log('Initial Supabase session loaded', {
+              hasUser: !!supabaseSession.user,
+              userEmail: supabaseSession.user.email
+            })
+
+            setSession(supabaseSession)
+            setUser(supabaseSession.user)
+            setIsLoading(false)
+
+            // Handle initial redirect based on session
+            if (isAuthRoute) {
+              handleRedirect('/dashboard')
+            }
+          } else {
+            // User is not authenticated
+            if (isProtectedRoute) {
+              handleRedirect('/auth')
+            }
+            setIsLoading(false)
           }
         }
       } catch (error) {
@@ -112,74 +201,132 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getInitialSession()
 
-    // Listen for auth changes (only for protected/auth routes)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only handle auth changes for protected/auth routes
-      if (!requiresAuthCheck) {
-        log('Skipping auth state change for public route:', pathname)
-        return
-      }
-
-      log('Auth state change', `${event} ${session?.user?.email}`)
-      
+    // Listen for Supabase auth state changes (Google OAuth)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, supabaseSession) => {
       if (!isMounted) return
 
-      setSession(session)
-      setUser(session?.user ?? null)
-      setIsLoading(false)
+      log('Supabase auth state change', `${event} ${supabaseSession?.user?.email}`)
+      
+      if (supabaseSession?.user) {
+        setSession(supabaseSession)
+        setUser(supabaseSession.user)
+        setIsLoading(false)
 
-      // Handle auth state changes
-      switch (event) {
-        case 'SIGNED_IN':
-          if (session?.user && isAuthRoute) {
-            handleRedirect('/dashboard')
-          }
-          break
-        case 'SIGNED_OUT':
-          if (isProtectedRoute) {
-            handleRedirect('/auth')
-          }
-          break
-        case 'TOKEN_REFRESHED':
-        case 'INITIAL_SESSION':
-          // No redirect needed for token refresh or initial session
-          break
-        default:
-          // Only log truly unhandled events
-          if (!['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'INITIAL_SESSION'].includes(event)) {
-            log('Unhandled auth event:', event)
-          }
+        // Handle auth state changes
+        if (event === 'SIGNED_IN' && isAuthRoute) {
+          handleRedirect('/dashboard')
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null)
+        setUser(null)
+        if (isProtectedRoute) {
+          handleRedirect('/auth')
+        }
       }
     })
-
+    
     return () => {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
+      }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
+
+  const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
+    log('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
+    console.log('Setting user in auth context:', user)
+    setUser(user)
+    setSession(session)
+    
+    // If user is on auth page and successfully authenticated, redirect to dashboard
+    if (isAuthRoute) {
+      log('User authenticated on auth page, redirecting to dashboard')
+      handleRedirect('/dashboard')
+    }
+  }, [isAuthRoute, handleRedirect, pathname])
+
+  const updateSupabaseAuthState = useCallback((user: User, session: Session) => {
+    setUser(user)
+    setSession(session)
+    
+    // If user is on auth page and successfully authenticated, redirect to dashboard
+    if (isAuthRoute) {
+      handleRedirect('/dashboard')
+    }
+  }, [isAuthRoute, handleRedirect])
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      if (eazynetAPI.isAuthenticated()) {
+        console.log('AuthContext: Fetching user profile...')
+        const profileData = await eazynetAPI.getProfile()
+        console.log('AuthContext: Profile data received:', profileData)
+        if (profileData) {
+          const userData: EazyNetUser = {
+            id: profileData.id,
+            email: profileData.email,
+            name: profileData.name
+          }
+          console.log('AuthContext: Created userData from profile:', userData)
+          setUser(userData)
+          log('User profile fetched and set:', userData)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }, [])
 
   const signOut = useCallback(async () => {
     try {
       log('Starting sign out process')
       showGlobalLoading()
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Sign out error:', error)
-        hideGlobalLoading()
+      
+      // Check which auth method to use for logout
+      if (eazynetAPI.isAuthenticated()) {
+        await eazynetAPI.logout()
+      } else if (user && 'aud' in user) { // Supabase user has 'aud' property
+        await supabase.auth.signOut()
       }
-      // Auth state change listener will handle the redirect
+      
+      // Clear local state
+      setUser(null)
+      setSession(null)
+      
+      // Redirect to auth page
+      if (isProtectedRoute) {
+        handleRedirect('/auth')
+      }
     } catch (error) {
       console.error('Sign out exception:', error)
+    } finally {
       hideGlobalLoading()
     }
-  }, [supabase.auth, showGlobalLoading, hideGlobalLoading])
+  }, [showGlobalLoading, hideGlobalLoading, isProtectedRoute, handleRedirect, user, supabase.auth])
 
   const value: AuthContextType = {
     user,
     session,
     isLoading: requiresAuthCheck ? isLoading : false, // Don't show loading for public routes
     signOut,
-    isAuthenticated: !!user
+    isAuthenticated: !!user || !!session,
+    updateAuthState,
+    updateSupabaseAuthState,
+    fetchUserProfile
+  }
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('AuthContext value:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      hasSession: !!session,
+      isLoading,
+      isAuthenticated: !!user || !!session,
+      pathname,
+      isAuthRoute,
+      isProtectedRoute,
+      requiresAuthCheck
+    })
   }
 
   return (
