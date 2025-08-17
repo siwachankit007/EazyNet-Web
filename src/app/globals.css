@@ -303,4 +303,30 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  /* Custom button styles for upgrade buttons */
+  .upgrade-pro-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: auto !important;
+  }
+
+  .upgrade-pro-btn.bg-white {
+    background-color: white !important;
+    color: #1f2937 !important; /* text-gray-800 */
+  }
+
+  .upgrade-pro-btn.bg-white:hover {
+    background-color: white !important;
+    color: #1f2937 !important;
+    /* Remove any hover color changes */
+  }
+
+  /* Ensure button text is always centered */
+  .upgrade-pro-btn > * {
+    text-align: center !important;
+    width: 100% !important;
+  }
 }
