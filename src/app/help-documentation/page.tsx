@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Search, FolderOpen, Settings, Keyboard, Chrome } from "lucide-react"
+import { Search, FolderOpen, Settings, Keyboard, Chrome } from "lucide-react"
 
 export default function HelpDocumentationPage() {
   return (
@@ -15,14 +15,7 @@ export default function HelpDocumentationPage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            className="text-white hover:text-white/80 mb-4"
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+         
           <h1 className="text-4xl font-bold text-white mb-4">EazyNet Help & Documentation</h1>
           <p className="text-white/80 text-lg">
             Complete guide to using EazyNet tab manager extension
