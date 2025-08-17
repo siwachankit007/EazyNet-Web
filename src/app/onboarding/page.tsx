@@ -416,7 +416,7 @@ export default function OnboardingPage() {
       </section>
 
       {/* Feature Deep Dive Section */}
-      <section className="py-20 px-6 bg-white text-center bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
+      <section id="feature-deep-dive" className="py-20 px-6 bg-white text-center bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700">
         <motion.h2 
           className="text-4xl font-bold mb-12 text-white"
           initial={{ opacity: 0, y: 30 }}

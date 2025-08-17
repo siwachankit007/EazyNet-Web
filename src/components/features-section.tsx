@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import Image from "next/image"
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import 'swiper/css'
 import 'swiper/css/navigation'
 
@@ -35,6 +37,8 @@ const features = [
 ]
 
 export function FeaturesSection() {
+  const router = useRouter()
+
   useEffect(() => {
     // Initialize GLightbox
     if (typeof window !== 'undefined') {
@@ -54,11 +58,11 @@ export function FeaturesSection() {
       {/* Navigation and Swiper Container */}
       <div className="relative w-full max-w-7xl mx-auto" data-aos="fade-up" data-aos-delay="200">
         {/* Custom Navigation Buttons - Outside the slider */}
-        <div className="custom-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 transition cursor-pointer text-4xl -ml-12">
-          <i className="fa-solid fa-circle-left text-blue-600 hover:text-blue-800"></i>
+        <div className="custom-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 transition cursor-pointer bg-white rounded-full p-3 shadow-lg hover:shadow-xl border border-gray-200">
+          <ChevronLeft className="w-8 h-8 text-blue-600 hover:text-blue-800" />
         </div>
-        <div className="custom-next absolute right-0 top-1/2 -translate-y-1/2 z-10 transition cursor-pointer text-4xl -mr-12">
-          <i className="fa-solid fa-circle-right text-blue-600 hover:text-blue-800"></i>
+        <div className="custom-next absolute right-0 top-1/2 -translate-y-1/2 z-10 transition cursor-pointer bg-white rounded-full p-3 shadow-lg hover:shadow-xl border border-gray-200">
+          <ChevronRight className="w-8 h-8 text-blue-600 hover:text-blue-800" />
         </div>
 
         {/* Swiper Carousel */}
@@ -89,7 +93,14 @@ export function FeaturesSection() {
                   onClick={() => {
                     if (index === 4) {
                       // Navigate to onboarding page for deep dive
-                      window.location.href = '/onboarding#feature-deep-dive'
+                      router.push('/onboarding#feature-deep-dive')
+                      // Scroll to the section after navigation
+                      setTimeout(() => {
+                        const element = document.getElementById('feature-deep-dive')
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth' })
+                        }
+                      }, 100)
                     }
                   }}
                 >
