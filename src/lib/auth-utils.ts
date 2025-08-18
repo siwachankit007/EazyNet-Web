@@ -1,40 +1,40 @@
-
-/**
- * Updates the user's last activity timestamp in the database
- * @param userId - The user's ID
- * @returns Promise<void>
- */
-export async function updateUserActivity(userId: string): Promise<void> {
-  try {
-    // For now, we'll just log the activity update
-    // TODO: Implement user activity tracking in EazyNet backend if needed
-    if (process.env.NODE_ENV === 'development') {
-      console.log('User activity updated for user:', userId)
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Exception updating user activity:', error)
-    }
-  }
+export interface AuthStatusResponse {
+  authenticated: boolean
+  user: {
+    id: string
+    email: string
+    name?: string
+    created_at: string
+    isPro?: boolean
+  } | null
+  isPro: boolean
+  authMethod?: 'jwt'
+  error?: string
 }
 
 /**
- * Creates a new user record in the database
- * @param user - The user object from EazyNet backend
- * @param fullName - The user's full name
- * @returns Promise<void>
+ * Get authentication status from the API endpoint
  */
-export async function createUserRecord(user: { email?: string } | string, fullName: string): Promise<void> {
+export async function getAuthStatus(): Promise<AuthStatusResponse> {
   try {
-    // For now, we'll just log the user creation
-    // TODO: Implement user record creation in EazyNet backend if needed
-    if (process.env.NODE_ENV === 'development') {
-      const userEmail = typeof user === 'string' ? user : user.email
-      console.log('User record created successfully for:', userEmail || fullName)
+    const response = await fetch('/api/auth/status', {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
+
+    const data: AuthStatusResponse = await response.json()
+    return data
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Exception creating user record:', error)
+    console.error('Error fetching auth status:', error)
+    return {
+      authenticated: false,
+      user: null,
+      isPro: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
   }
 } 

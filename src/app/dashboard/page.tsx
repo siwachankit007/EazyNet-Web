@@ -60,7 +60,6 @@ function DashboardContent() {
   // Fetch user profile when component mounts
   useEffect(() => {
     if (!user) {
-      console.log('Dashboard: No user, fetching profile...')
       fetchUserProfile()
     }
   }, [user, fetchUserProfile])
@@ -69,11 +68,8 @@ function DashboardContent() {
     // Try to communicate with extension via chrome.runtime.sendMessage
     const extendedWindow = window as ExtendedWindow
     if (typeof window !== 'undefined' && extendedWindow.chrome?.runtime) {
-      console.log('Attempting to send message to extension...')
       extendedWindow.chrome.runtime.sendMessage('ghkblcolgioaoajmhciloahjjcbhekbi', { action: 'open' }, (response: unknown) => {
-        console.log('Extension response:', response)
         if (extendedWindow.chrome?.runtime?.lastError) {
-          console.log('Extension error:', extendedWindow.chrome.runtime.lastError)
           toast.success('Press Ctrl+Shift+E to open the EazyNet extension, or click the extension icon in your browser toolbar.')
         } else if (response && typeof response === 'object' && 'success' in response) {
           const responseObj = response as { success: boolean; data?: Record<string, unknown>; error?: string }
@@ -93,7 +89,6 @@ function DashboardContent() {
       })
     } else {
       // Chrome runtime not available
-      console.log('Chrome runtime not available')
       toast.success('Press Ctrl+Shift+E to open the EazyNet extension, or click the extension icon in your browser toolbar.')
     }
   }

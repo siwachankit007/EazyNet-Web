@@ -1,5 +1,10 @@
 // EazyNet Backend API Client
-const API_BASE_URL = process.env.NEXT_PUBLIC_EAZYNET_API_URL || 'https://localhost:7061'
+const API_BASE_URL = process.env.NEXT_PUBLIC_EAZYNET_API_URL
+
+// Validate required environment variables
+if (!API_BASE_URL) {
+  throw new Error('NEXT_PUBLIC_EAZYNET_API_URL environment variable is required')
+}
 
 interface LoginRequest {
   email: string
@@ -238,7 +243,6 @@ class EazyNetAPI {
   // User endpoints
   async getProfile(): Promise<ProfileResponse> {
     const response = await this.makeRequest<ProfileResponse>('/api/User/profile')
-    console.log('EazyNet API getProfile response:', response)
     return response
   }
 
@@ -257,6 +261,11 @@ class EazyNetAPI {
     if (typeof window !== 'undefined') {
       localStorage.setItem('eazynet_token', token)
       localStorage.setItem('eazynet_refresh_token', refreshToken)
+      
+      // Also set cookie for server-side access
+      const expires = new Date()
+      expires.setDate(expires.getDate() + 7)
+      document.cookie = `eazynet_jwt_token=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
     }
   }
 
@@ -267,6 +276,9 @@ class EazyNetAPI {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('eazynet_token')
       localStorage.removeItem('eazynet_refresh_token')
+      
+      // Also clear the cookie
+      document.cookie = 'eazynet_jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     }
   }
 

@@ -1,6 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserDataWithFallback } from '@/lib/user-utils'
+
+// Simple JWT decode function (client-side only, no signature validation)
+function decodeJWT(token: string) {
+  try {
+    const payload = token.split('.')[1]
+    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString())
+    return decoded
+  } catch (error) {
+    console.error('Failed to decode JWT token:', error)
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   // Handle CORS for Chrome extension
@@ -9,84 +19,94 @@ export async function GET(request: NextRequest) {
                            origin?.startsWith('moz-extension://') ||
                            origin?.includes('chromiumapp.org')
 
-  const response = NextResponse.json({})
-
-  // Set CORS headers for Chrome extension
-  if (isChromeExtension) {
-    response.headers.set('Access-Control-Allow-Origin', origin || '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-
   try {
-    const supabase = await createClient()
+    // Check for JWT token in Authorization header (for component calls)
+    const authHeader = request.headers.get('authorization')
+    let jwtToken = null
     
-    // Get the current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      jwtToken = authHeader.substring(7)
+    }
     
-    if (sessionError) {
-      console.error('Auth Status API: Session error:', sessionError)
-      return NextResponse.json({
-        authenticated: false,
-        user: null,
-        isPro: false,
-        error: 'Session error'
-      }, { status: 500 })
+    // If no Authorization header, check cookies (for direct browser access)
+    if (!jwtToken) {
+      const cookieHeader = request.headers.get('cookie')
+      if (cookieHeader) {
+        const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split('=')
+          acc[key] = value
+          return acc
+        }, {} as Record<string, string>)
+        
+        if (cookies.eazynet_jwt_token) {
+          jwtToken = cookies.eazynet_jwt_token
+        }
+      }
     }
-
-    // If no session, user is not authenticated
-    if (!session || !session.user) {
-      return NextResponse.json({
-        authenticated: false,
-        user: null,
-        isPro: false
-      })
-    }
-
-    // Get user data including pro status
-    // Use cached data if available, only fetch fresh data if needed
-    const userData = await getUserDataWithFallback(session.user, false) // Don't force refresh
     
-    if (!userData) {
-      return NextResponse.json({
-        authenticated: true,
-        user: {
-          id: session.user.id,
-          email: session.user.email,
-          created_at: session.user.created_at
-        },
-        isPro: false,
-        error: 'User data not found'
-      })
+    if (jwtToken) {
+      // Decode JWT token to get user info
+      const tokenUser = decodeJWT(jwtToken)
+      if (tokenUser) {
+        const response = NextResponse.json({
+          authenticated: true,
+          user: {
+            id: tokenUser.sub || tokenUser.id || 'unknown',
+            email: tokenUser.email || 'unknown@email.com',
+            name: tokenUser.name || 'User',
+            created_at: tokenUser.iat ? new Date(tokenUser.iat * 1000).toISOString() : new Date().toISOString()
+          },
+          isPro: tokenUser.isPro || false,
+          authMethod: 'jwt'
+        })
+
+        // Set CORS headers for Chrome extensions
+        if (isChromeExtension) {
+          response.headers.set('Access-Control-Allow-Origin', origin || '*')
+          response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+          response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+          response.headers.set('Access-Control-Allow-Credentials', 'true')
+        }
+
+        return response
+      }
     }
-
-    // Check both database isPro and user metadata isPro
-    const isProFromDatabase = userData.isPro || false
-    const isProFromMetadata = session.user.user_metadata?.isPro || false
-    const finalIsPro = isProFromDatabase || isProFromMetadata
-
-    // Return authenticated user with pro status
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        created_at: session.user.created_at,
-        name: userData.name,
-        isPro: finalIsPro
-      },
-      isPro: finalIsPro
+    
+    // If no token or decoding failed, user is not authenticated
+    const response = NextResponse.json({
+      authenticated: false,
+      user: null,
+      isPro: false
     })
+
+    // Set CORS headers for Chrome extensions
+    if (isChromeExtension) {
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+    }
+
+    return response
 
   } catch (error) {
     console.error('Auth Status API: Unexpected error:', error)
-    return NextResponse.json({
+    const response = NextResponse.json({
       authenticated: false,
       user: null,
       isPro: false,
       error: 'Internal server error'
     }, { status: 500 })
+
+    // Set CORS headers for Chrome extensions
+    if (isChromeExtension) {
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+    }
+
+    return response
   }
 }
 

@@ -102,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                  // Check if user is authenticated via EazyNet backend
          if (eazynetAPI.isAuthenticated()) {
            const tokenUser = eazynetAPI.getUserFromToken()
-           console.log('AuthContext: JWT token decoded:', tokenUser)
            if (tokenUser) {
              // Create temporary user data from token (will be updated with fresh data)
              const tempUserData: EazyNetUser = {
@@ -129,16 +128,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
              // Fetch fresh profile data from backend
              try {
-               console.log('AuthContext: Fetching fresh profile data after token auth...')
                const profileData = await eazynetAPI.getProfile()
-               console.log('AuthContext: Fresh profile data received:', profileData)
                if (profileData && profileData.name !== 'User') {
                  const freshUserData: EazyNetUser = {
                    id: profileData.id,
                    email: profileData.email,
                    name: profileData.name
                  }
-                 console.log('AuthContext: Updating user with fresh profile data:', freshUserData)
                  setUser(freshUserData)
                  
                  // Update session with fresh user data
@@ -233,7 +229,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
     log('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
-    console.log('Setting user in auth context:', user)
     setUser(user)
     setSession(session)
     
@@ -257,16 +252,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserProfile = useCallback(async () => {
     try {
       if (eazynetAPI.isAuthenticated()) {
-        console.log('AuthContext: Fetching user profile...')
         const profileData = await eazynetAPI.getProfile()
-        console.log('AuthContext: Profile data received:', profileData)
         if (profileData) {
           const userData: EazyNetUser = {
             id: profileData.id,
             email: profileData.email,
             name: profileData.name
           }
-          console.log('AuthContext: Created userData from profile:', userData)
           setUser(userData)
           log('User profile fetched and set:', userData)
         }

@@ -90,44 +90,28 @@ export function Navigation() {
   // Fetch user data when user changes
   useEffect(() => {
     if (user) {
-      console.log('Navigation received user:', user)
-      console.log('User type check - has name:', 'name' in user)
-      console.log('User type check - has fullName:', 'fullName' in user)
-      console.log('User type check - has user_metadata:', 'user_metadata' in user)
       
       // Check if this is an EazyNet user (has name property)
       if ('name' in user) {
-        console.log('Detected EazyNet user with name:', user.name)
-        // For EazyNet users, create UserData from the user object directly
-        const eazyNetUserData: UserData = {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          isPro: false, // Default value, can be updated later if needed
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        console.log('Created EazyNet UserData:', eazyNetUserData)
+       
       } else {
-        console.log('Detected Supabase user')
         // For Supabase users, fetch additional data
         const fetchUserData = async () => {
-                  const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
-        if (freshUserData) {
-          console.log('Fetched Supabase user data:', freshUserData)
-        }
+          const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
+          if (freshUserData) {
+            // Handle fresh user data if needed
+          }
         }
         fetchUserData()
       }
     } else {
-      console.log('No user, clearing user data')
+      // No user, clear user data
     }
   }, [user])
 
   // Fetch user profile if not available
   useEffect(() => {
     if (!user && isAuthenticated) {
-      console.log('Navigation: No user but authenticated, fetching profile...')
       fetchUserProfile()
     }
   }, [user, isAuthenticated, fetchUserProfile])
@@ -168,10 +152,8 @@ export function Navigation() {
   const { signOut } = useAuth()
 
   const handleSignOut = useCallback(async () => {
-    console.log('Starting sign out process...')
     try {
       await signOut()
-      console.log('Sign out successful, auth context will handle redirect')
     } catch (err) {
       console.error('Exception during sign out:', err)
     }

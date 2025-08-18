@@ -81,12 +81,8 @@ export function AuthForm() {
           })
 
           if (response.token) {
-            console.log('AuthForm: Login successful, token received:', response.token)
-            console.log('AuthForm: Login response full:', response)
-            
             // Check if we have user data in the login response
             if (response.user && response.user.name) {
-              console.log('AuthForm: Using user data from login response:', response.user)
               const userData = {
                 id: response.user.id,
                 email: response.user.email,
@@ -101,7 +97,6 @@ export function AuthForm() {
               
               updateAuthState(userData, sessionData)
             } else {
-              console.log('AuthForm: No user data in login response, will fetch separately')
               // For login, we only need to store the token
               // User profile data will be fetched separately when needed
               const sessionData = {
@@ -139,8 +134,6 @@ export function AuthForm() {
           })
 
           if (response.token) {
-            console.log('AuthForm: Signup successful, token received:', response.token)
-            
             // For signup, we might get user data immediately, or we can fetch it later
             if (response.user) {
               const userData = {
@@ -149,9 +142,6 @@ export function AuthForm() {
                 name: response.user.name
               }
               
-              console.log('AuthForm: Signup API response:', response)
-              console.log('AuthForm: Created signup userData:', userData)
-              
               logUserData('AuthForm', userData, { action: 'Signup Successful', hasSession: true })
               
               const sessionData = {
@@ -159,7 +149,6 @@ export function AuthForm() {
                 refreshToken: response.refreshToken,
                 user: userData
               }
-              console.log('AuthForm: Created signup sessionData:', sessionData)
               updateAuthState(userData, sessionData)
             } else {
               // No user data in response, just store the token
