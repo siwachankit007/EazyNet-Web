@@ -31,8 +31,6 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  // Optimize for production
-  swcMinify: true,
   // Ensure proper image optimization
   images: {
     domains: ['eazynet.app'],
