@@ -1,26 +1,72 @@
 {
   "name": "eazynet-web",
-  "version": "1.0.0",
-  "main": "main-common.js",
+  "version": "2.0.0",
+  "description": "EazyNet SaaS Web Application - Smart Chrome Tab Manager",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "tunnel": "npx ngrok http 3000",
+    "tunnel-alt": "lt --port 3000"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/siwachankit007/EazyNet-Web.git"
   },
-  "keywords": [],
+  "keywords": [
+    "eazynet",
+    "chrome-extension",
+    "tab-manager",
+    "productivity",
+    "saas",
+    "nextjs",
+    "react"
+  ],
   "author": "Ankit Singh",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/siwachankit007/EazyNet-Web/issues"
   },
-  "homepage": "https://github.com/siwachankit007/EazyNet-Web#readme",
-  "devDependencies": {
-    "tailwindcss": "^4.1.4"
-  },
+  "homepage": "https://eazynet.app",
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.4"
+    "@heroicons/react": "^2.2.0",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.1.0",
+    "@supabase/supabase-js": "^2.39.7",
+    "@types/aos": "^3.0.7",
+    "aos": "^2.3.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.0",
+    "framer-motion": "^12.23.11",
+    "glightbox": "^3.3.1",
+    "lucide-react": "^0.535.0",
+    "next": "15.4.4",
+    "next-themes": "^0.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.61.1",
+    "sonner": "^1.4.3",
+    "swiper": "^11.2.10",
+    "tailwind-merge": "^2.2.1"
   },
-  "description": ""
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.0.0",
+    "@tailwindcss/forms": "^0.5.6",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "15.4.4",
+    "ngrok": "^5.0.0-beta.2",
+    "tailwindcss": "^3.3.3",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.0.0"
+  }
 }
