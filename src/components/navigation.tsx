@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, User, Settings, LogOut } from "lucide-react"
 import { useLoading } from "@/components/loading-context"
 import { useAuth } from "@/lib/auth-context"
-import { getUserDataWithFallback, type UserData } from "@/lib/user-utils"
+import { getUserDataWithFallback } from "@/lib/user-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,

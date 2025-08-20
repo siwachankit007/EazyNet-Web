@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check if current route requires auth checking
   const isProtectedRoute = useMemo(() => PROTECTED_ROUTES.some(route => pathname.startsWith(route)), [pathname])
-  const isAuthRoute = useMemo(() => AUTH_ROUTES.some(route => pathname.startsWith(route)), [pathname])
+  const isAuthRoute = useMemo(() => AUTH_ROUTES.some(route => pathname.startsWith(route)), [isProtectedRoute])
   const requiresAuthCheck = useMemo(() => isProtectedRoute || isAuthRoute, [isProtectedRoute, isAuthRoute])
 
   // Centralized redirect logic with debouncing
@@ -99,68 +99,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         log('Getting initial session for protected/auth route:', pathname)
         
-                 // Check if user is authenticated via EazyNet backend
-         if (eazynetAPI.isAuthenticated()) {
-           const tokenUser = eazynetAPI.getUserFromToken()
-           if (tokenUser) {
-             // Create temporary user data from token (will be updated with fresh data)
-             const tempUserData: EazyNetUser = {
-               id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
-               email: (tokenUser.email as string) || '',
-               name: (tokenUser.name as string) || 'User'
-             }
-             
-             const sessionData: EazyNetSession = {
-               token: eazynetAPI.getToken()!,
-               refreshToken: eazynetAPI.getRefreshToken()!,
-               user: tempUserData
-             }
-             
-             log('Initial EazyNet session loaded from token', {
-               hasUser: !!tempUserData,
-               userEmail: tempUserData.email,
-               userName: tempUserData.name
-             })
+        // Check if user is authenticated via EazyNet backend
+        if (eazynetAPI.isAuthenticated()) {
+          const tokenUser = eazynetAPI.getUserFromToken()
+          if (tokenUser) {
+            // Create temporary user data from token (will be updated with fresh data)
+            const tempUserData: EazyNetUser = {
+              id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
+              email: (tokenUser.email as string) || '',
+              name: (tokenUser.name as string) || 'User'
+            }
+            
+            const sessionData: EazyNetSession = {
+              token: eazynetAPI.getToken()!,
+              refreshToken: eazynetAPI.getRefreshToken()!,
+              user: tempUserData
+            }
+            
+            log('Initial EazyNet session loaded from token', {
+              hasUser: !!tempUserData,
+              userEmail: tempUserData.email,
+              userName: tempUserData.name
+            })
 
-             setSession(sessionData)
-             setUser(tempUserData)
-             setIsLoading(false)
+            setSession(sessionData)
+            setUser(tempUserData)
+            setIsLoading(false)
 
-             // Fetch fresh profile data from backend
-             try {
-               const profileData = await eazynetAPI.getProfile()
-               if (profileData && profileData.name !== 'User') {
-                 const freshUserData: EazyNetUser = {
-                   id: profileData.id,
-                   email: profileData.email,
-                   name: profileData.name
-                 }
-                 setUser(freshUserData)
-                 
-                 // Update session with fresh user data
-                 const updatedSessionData: EazyNetSession = {
-                   ...sessionData,
-                   user: freshUserData
-                 }
-                 setSession(updatedSessionData)
-               }
-             } catch (error) {
-               console.error('Error fetching fresh profile data:', error)
-               // Keep using token data if profile fetch fails
-             }
+            // Fetch fresh profile data from backend
+            try {
+              const profileData = await eazynetAPI.getProfile()
+              if (profileData && profileData.name !== 'User') {
+                const freshUserData: EazyNetUser = {
+                  id: profileData.id,
+                  email: profileData.email,
+                  name: profileData.name
+                }
+                setUser(freshUserData)
+                
+                // Update session with fresh user data
+                const updatedSessionData: EazyNetSession = {
+                  ...sessionData,
+                  user: freshUserData
+                }
+                setSession(updatedSessionData)
+              }
+            } catch (error) {
+              console.error('Error fetching fresh profile data:', error)
+              // Keep using token data if profile fetch fails
+            }
 
-             // Handle initial redirect based on session
-             if (isAuthRoute) {
-               handleRedirect('/dashboard')
-             }
-           } else {
-             // Invalid token, clear and redirect
-             eazynetAPI.logout()
-             if (isProtectedRoute) {
-               handleRedirect('/auth')
-             }
-             setIsLoading(false)
-           }
+            // Handle initial redirect based on session
+            if (isAuthRoute) {
+              handleRedirect('/dashboard')
+            }
+          } else {
+            // Invalid token, clear and redirect
+            eazynetAPI.logout()
+            if (isProtectedRoute) {
+              handleRedirect('/auth')
+            }
+            setIsLoading(false)
+          }
         } else {
           // Check if user is authenticated via Supabase (Google OAuth)
           const { data: { session: supabaseSession } } = await supabase.auth.getSession()
@@ -198,19 +198,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getInitialSession()
 
     // Listen for Supabase auth state changes (Google OAuth)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, supabaseSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
       if (!isMounted) return
 
       log('Supabase auth state change', `${event} ${supabaseSession?.user?.email}`)
       
-      if (supabaseSession?.user) {
-        setSession(supabaseSession)
-        setUser(supabaseSession.user)
-        setIsLoading(false)
+      if (supabaseSession?.user && event === 'SIGNED_IN') {
+        try {
+          // Convert Supabase OAuth user to EazyNet user via backend
+          const oauthData = {
+            provider: 'google',
+            accessToken: supabaseSession.access_token,
+            idToken: supabaseSession.provider_token || undefined
+          }
 
-        // Handle auth state changes
-        if (event === 'SIGNED_IN' && isAuthRoute) {
-          handleRedirect('/dashboard')
+          // Login via EazyNet backend with OAuth data
+          const authResponse = await eazynetAPI.oauthLogin(oauthData)
+          
+          // Create unified user data
+          const unifiedUser: EazyNetUser = {
+            id: authResponse.user.id,
+            email: authResponse.user.email,
+            name: authResponse.user.name
+          }
+
+          // Create unified session
+          const unifiedSession: EazyNetSession = {
+            token: authResponse.token,
+            refreshToken: authResponse.refreshToken,
+            user: unifiedUser
+          }
+
+          // Set unified auth state
+          setUser(unifiedUser)
+          setSession(unifiedSession)
+          setIsLoading(false)
+
+          // Handle redirect
+          if (isAuthRoute) {
+            handleRedirect('/dashboard')
+          }
+
+          log('OAuth user converted to EazyNet user', unifiedUser)
+        } catch (error) {
+          console.error('Failed to convert OAuth user to EazyNet user:', error)
+          
+          // Fallback to Supabase-only auth if backend integration fails
+          setSession(supabaseSession)
+          setUser(supabaseSession.user)
+          setIsLoading(false)
+          
+          if (isAuthRoute) {
+            handleRedirect('/dashboard')
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
@@ -225,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
-      }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
+  }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
 
   const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
     log('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
@@ -251,6 +291,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = useCallback(async () => {
     try {
+      // All users now go through EazyNet backend
       if (eazynetAPI.isAuthenticated()) {
         const profileData = await eazynetAPI.getProfile()
         if (profileData) {
@@ -262,11 +303,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData)
           log('User profile fetched and set:', userData)
         }
+      } else {
+        // Redirect to auth page if not authenticated
+        handleRedirect('/auth')
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
+      // Redirect to auth page on error
+      handleRedirect('/auth')
     }
-  }, [])
+  }, [handleRedirect])
 
   const signOut = useCallback(async () => {
     try {

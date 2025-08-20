@@ -1,9 +1,14 @@
 // EazyNet Backend API Client
 const API_BASE_URL = process.env.NEXT_PUBLIC_EAZYNET_API_URL
 
-// Runtime validation only (not at build time)
+// Runtime validation with development fallback
 const getApiBaseUrl = () => {
   if (!API_BASE_URL) {
+    // Development fallback for local testing
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Using development fallback URL: https://localhost:7061')
+      return 'https://localhost:7061'
+    }
     throw new Error('NEXT_PUBLIC_EAZYNET_API_URL environment variable is required')
   }
   return API_BASE_URL
@@ -17,7 +22,8 @@ interface LoginRequest {
 interface RegisterRequest {
   email: string
   password: string
-  name: string
+  fullName: string
+  confirmPassword: string
 }
 
 interface AuthResponse {
@@ -32,6 +38,12 @@ interface AuthResponse {
     createdAt: string
     lastLoginAt: string
   }
+}
+
+interface OAuthLoginRequest {
+  provider: string
+  accessToken: string
+  idToken?: string
 }
 
 interface ProfileResponse {
@@ -131,6 +143,13 @@ class EazyNetAPI {
                   throw new Error(errorData.error)
                 } else if (errorData.message) {
                   throw new Error(errorData.message)
+                } else if (errorData.errors) {
+                  // Handle validation errors more gracefully
+                  const errorMessages = Object.values(errorData.errors)
+                    .flat()
+                    .filter(msg => typeof msg === 'string')
+                    .join(', ')
+                  throw new Error(errorMessages || `Request failed with status ${retryResponse.status}`)
                 } else {
                   throw new Error(`Request failed with status ${retryResponse.status}`)
                 }
@@ -163,6 +182,13 @@ class EazyNetAPI {
             throw new Error(errorData.error)
           } else if (errorData.message) {
             throw new Error(errorData.message)
+          } else if (errorData.errors) {
+            // Handle validation errors more gracefully
+            const errorMessages = Object.values(errorData.errors)
+              .flat()
+              .filter(msg => typeof msg === 'string')
+              .join(', ')
+            throw new Error(errorMessages || `Request failed with status ${response.status}`)
           } else {
             throw new Error(`Request failed with status ${response.status}`)
           }
@@ -192,6 +218,17 @@ class EazyNetAPI {
     const response = await this.makeRequest<AuthResponse>('/api/Auth/register', {
       method: 'POST',
       body: JSON.stringify(userData)
+    })
+
+    this.setTokens(response.token, response.refreshToken)
+
+    return response
+  }
+
+  async oauthLogin(oauthData: OAuthLoginRequest): Promise<AuthResponse> {
+    const response = await this.makeRequest<AuthResponse>('/api/Auth/oauth-login', {
+      method: 'POST',
+      body: JSON.stringify(oauthData)
     })
 
     this.setTokens(response.token, response.refreshToken)

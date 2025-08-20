@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
+import { UpgradeButton } from "@/components/payment/upgrade-button"
 
 interface SubscriptionData {
   id: string
@@ -107,9 +108,9 @@ export function SubscriptionManager() {
           <p className="text-sm text-gray-600 mb-4">
             You don&apos;t have an active subscription. Upgrade to unlock premium features.
           </p>
-          <Button>
+          <UpgradeButton>
             Upgrade to Pro
-          </Button>
+          </UpgradeButton>
         </CardContent>
       </Card>
     )

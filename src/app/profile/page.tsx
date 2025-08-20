@@ -217,6 +217,7 @@ function ProfileContent() {
 
   const handleUpdateProfile = async () => {
     console.log('Profile: Updating profile for user:', user?.id, 'new name:', fullName)
+    
     await withLoading('update-profile', async () => {
       try {
         await eazynetAPI.updateProfile({
