@@ -4,11 +4,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
-import { useLoading } from "@/components/loading-context"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink, CreditCard, Clock, CheckCircle } from "lucide-react"
+import { eazynetAPI } from "@/lib/eazynet-api"
 
 interface UpgradeButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link'
@@ -30,7 +30,6 @@ export function UpgradeButton({
   const [isLoading, setIsLoading] = useState(false)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const { user } = useAuth()
-  const { withLoading } = useLoading()
 
   const handleUpgrade = async () => {
     if (!user) {
@@ -54,10 +53,23 @@ export function UpgradeButton({
     toast.success('Email client opened. Please send your upgrade request.')
   }
 
-  const handleJoinWaitlist = () => {
-    // Add user to waitlist (you can implement this later)
-    toast.success('Added to upgrade waitlist! We\'ll notify you when payments are available.')
-    setShowPaymentDialog(false)
+  const handleJoinWaitlist = async () => {
+    if (!user) {
+      toast.error('Please sign in to join the waitlist')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await eazynetAPI.updateInterestedInProFlag(true)
+      toast.success('Added to upgrade waitlist! We\'ll notify you when payments are available.')
+      setShowPaymentDialog(false)
+    } catch (error) {
+      toast.error('Failed to join waitlist. Please try again later.')
+      console.error('Waitlist error:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -145,8 +157,9 @@ export function UpgradeButton({
                 onClick={handleJoinWaitlist}
                 className="w-full"
                 variant="outline"
+                disabled={isLoading}
               >
-                Join Waitlist
+                {isLoading ? 'Joining...' : 'Join Waitlist'}
               </Button>
               
               <Button 

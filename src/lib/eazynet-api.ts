@@ -1,4 +1,6 @@
 // EazyNet Backend API Client
+import { log } from './utils'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_EAZYNET_API_URL
 
 // Runtime validation with development fallback
@@ -6,7 +8,7 @@ const getApiBaseUrl = () => {
   if (!API_BASE_URL) {
     // Development fallback for local testing
     if (process.env.NODE_ENV === 'development') {
-      console.warn('Using development fallback URL: https://localhost:7061')
+      log.warn('Using development fallback URL: https://localhost:7061')
       return 'https://localhost:7061'
     }
     throw new Error('NEXT_PUBLIC_EAZYNET_API_URL environment variable is required')
@@ -197,7 +199,7 @@ class EazyNetAPI {
 
       return await response.json()
     } catch (error) {
-      console.error('API request failed:', error)
+      log.error('API request failed:', error)
       throw error
     }
   }
@@ -258,7 +260,7 @@ class EazyNetAPI {
         }
       }
     } catch (error) {
-      console.error('Token refresh failed:', error)
+      log.error('Token refresh failed:', error)
     }
 
     // Clear tokens if refresh failed
@@ -274,7 +276,7 @@ class EazyNetAPI {
         })
       }
     } catch (error) {
-      console.error('Logout failed:', error)
+      log.error('Logout failed:', error)
     } finally {
       this.clearTokens()
     }
@@ -291,6 +293,14 @@ class EazyNetAPI {
       method: 'PUT',
       body: JSON.stringify(profileData)
     })
+  }
+
+  // Waitlist endpoint
+  async updateInterestedInProFlag(value: boolean): Promise<boolean> {
+    const response = await this.makeRequest<boolean>(`/api/User/profile/interested-in-pro?value=${value}`, {
+      method: 'PATCH'
+    })
+    return response
   }
 
   // Token management
@@ -332,7 +342,34 @@ class EazyNetAPI {
   }
 
   isAuthenticated(): boolean {
-    return !!this.token
+    if (!this.token) return false
+    
+    // Validate token format before considering it valid
+    try {
+      const parts = this.token.split('.')
+      if (parts.length !== 3) {
+        log.warn('Invalid JWT format detected, clearing token')
+        this.clearTokens()
+        return false
+      }
+      
+      // Check if token is expired (basic check)
+      const payload = parts[1]
+      if (payload) {
+        const decoded = JSON.parse(atob(payload))
+        if (decoded.exp && decoded.exp < Date.now() / 1000) {
+          log.warn('Token expired, clearing')
+          this.clearTokens()
+          return false
+        }
+      }
+      
+      return true
+    } catch (error) {
+      log.warn('Token validation failed, clearing invalid token:', error)
+      this.clearTokens()
+      return false
+    }
   }
 
   // Get user data from token (basic JWT decode)
@@ -340,11 +377,26 @@ class EazyNetAPI {
     if (!this.token) return null
     
     try {
-      const payload = this.token.split('.')[1]
+      // Check if token has valid JWT format (3 parts separated by dots)
+      const parts = this.token.split('.')
+      if (parts.length !== 3) {
+        log.warn('Invalid JWT format: token does not have 3 parts')
+        return null
+      }
+      
+      const payload = parts[1]
+      if (!payload) {
+        log.warn('Invalid JWT format: missing payload')
+        return null
+      }
+      
+      // Try to decode the payload
       const decoded = JSON.parse(atob(payload))
       return decoded
     } catch (error) {
-      console.error('Failed to decode token:', error)
+      log.error('Failed to decode token:', error)
+      // Clear the invalid token
+      this.clearTokens()
       return null
     }
   }

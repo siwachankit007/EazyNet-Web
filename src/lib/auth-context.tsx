@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { eazynetAPI } from '@/lib/eazynet-api'
 import { createClient } from '@/lib/supabase/client'
 import { useLoading } from '@/components/loading-context'
+import { log } from '@/lib/utils'
 import type { User, Session } from '@supabase/supabase-js'
 
 // Define user and session types for both authentication methods
@@ -38,9 +39,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper function for conditional logging
-const log = (message: string, data?: unknown) => {
+const authLog = (message: string, data?: unknown) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`AuthContext: ${message}`, data || '')
+    log.debug(`AuthContext: ${message}`, data || '')
   }
 }
 
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check if current route requires auth checking
   const isProtectedRoute = useMemo(() => PROTECTED_ROUTES.some(route => pathname.startsWith(route)), [pathname])
-  const isAuthRoute = useMemo(() => AUTH_ROUTES.some(route => pathname.startsWith(route)), [isProtectedRoute])
+  const isAuthRoute = useMemo(() => AUTH_ROUTES.some(route => pathname.startsWith(route)), [pathname])
   const requiresAuthCheck = useMemo(() => isProtectedRoute || isAuthRoute, [isProtectedRoute, isAuthRoute])
 
   // Centralized redirect logic with debouncing
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    log('Redirecting to:', targetPath)
+    authLog('Redirecting to:', targetPath)
     isRedirectingRef.current = true
     showGlobalLoading()
     
@@ -92,12 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Only check auth for protected or auth routes
         if (!requiresAuthCheck) {
-          log('Skipping auth check for public route:', pathname)
+          authLog('Skipping auth check for public route:', pathname)
           setIsLoading(false)
           return
         }
 
-        log('Getting initial session for protected/auth route:', pathname)
+        authLog('Getting initial session for protected/auth route:', pathname)
         
         // Check if user is authenticated via EazyNet backend
         if (eazynetAPI.isAuthenticated()) {
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               user: tempUserData
             }
             
-            log('Initial EazyNet session loaded from token', {
+            authLog('Initial EazyNet session loaded from token', {
               hasUser: !!tempUserData,
               userEmail: tempUserData.email,
               userName: tempUserData.name
@@ -163,10 +164,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else {
           // Check if user is authenticated via Supabase (Google OAuth)
+          // Only check Supabase if we don't have EazyNet tokens to avoid conflicts
           const { data: { session: supabaseSession } } = await supabase.auth.getSession()
           
           if (supabaseSession?.user) {
-            log('Initial Supabase session loaded', {
+            authLog('Initial Supabase session loaded', {
               hasUser: !!supabaseSession.user,
               userEmail: supabaseSession.user.email
             })
@@ -201,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
       if (!isMounted) return
 
-      log('Supabase auth state change', `${event} ${supabaseSession?.user?.email}`)
+      authLog('Supabase auth state change', `${event} ${supabaseSession?.user?.email}`)
       
       if (supabaseSession?.user && event === 'SIGNED_IN') {
         try {
@@ -239,7 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             handleRedirect('/dashboard')
           }
 
-          log('OAuth user converted to EazyNet user', unifiedUser)
+          authLog('OAuth user converted to EazyNet user', unifiedUser)
         } catch (error) {
           console.error('Failed to convert OAuth user to EazyNet user:', error)
           
@@ -253,8 +255,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } else if (event === 'SIGNED_OUT') {
+        authLog('Supabase session ended, clearing all auth state')
+        
+        // Clear both Supabase and EazyNet auth states
         setSession(null)
         setUser(null)
+        
+        // Also clear EazyNet tokens if they exist
+        if (eazynetAPI.isAuthenticated()) {
+          authLog('Clearing EazyNet tokens due to Supabase sign out')
+          eazynetAPI.logout()
+        }
+        
+        // Redirect to auth page if on protected route
         if (isProtectedRoute) {
           handleRedirect('/auth')
         }
@@ -268,13 +281,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
 
   const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
-    log('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
+    authLog('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
     setUser(user)
     setSession(session)
     
     // If user is on auth page and successfully authenticated, redirect to dashboard
     if (isAuthRoute) {
-      log('User authenticated on auth page, redirecting to dashboard')
+      authLog('User authenticated on auth page, redirecting to dashboard')
       handleRedirect('/dashboard')
     }
   }, [isAuthRoute, handleRedirect, pathname])
@@ -291,55 +304,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      // All users now go through EazyNet backend
-      if (eazynetAPI.isAuthenticated()) {
-        const profileData = await eazynetAPI.getProfile()
-        if (profileData) {
-          const userData: EazyNetUser = {
-            id: profileData.id,
-            email: profileData.email,
-            name: profileData.name
-          }
-          setUser(userData)
-          log('User profile fetched and set:', userData)
-        }
-      } else {
+      // Don't fetch profile if we're in the middle of signing out
+      if (!eazynetAPI.isAuthenticated()) {
+        authLog('Cannot fetch profile: not authenticated')
         // Redirect to auth page if not authenticated
         handleRedirect('/auth')
+        return
+      }
+
+      // All users now go through EazyNet backend
+      const profileData = await eazynetAPI.getProfile()
+      if (profileData) {
+        const userData: EazyNetUser = {
+          id: profileData.id,
+          email: profileData.email,
+          name: profileData.name
+        }
+        setUser(userData)
+        authLog('User profile fetched and set:', userData)
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
-      // Redirect to auth page on error
-      handleRedirect('/auth')
+      // Only redirect to auth page on error if we're not already signing out
+      if (user || session) {
+        handleRedirect('/auth')
+      }
     }
-  }, [handleRedirect])
+  }, [handleRedirect, user, session])
 
   const signOut = useCallback(async () => {
     try {
-      log('Starting sign out process')
+      authLog('Starting sign out process')
       showGlobalLoading()
       
-      // Check which auth method to use for logout
+      // For OAuth users, we need to clear both EazyNet and Supabase sessions
+      // Check if user is authenticated via EazyNet backend
       if (eazynetAPI.isAuthenticated()) {
+        authLog('Clearing EazyNet authentication')
         await eazynetAPI.logout()
-      } else if (user && 'aud' in user) { // Supabase user has 'aud' property
+      } else {
+        authLog('No EazyNet authentication to clear')
+      }
+      
+      // Always clear Supabase session for OAuth users
+      // This ensures Google OAuth session is properly terminated
+      try {
+        authLog('Clearing Supabase session')
         await supabase.auth.signOut()
+        authLog('Supabase session cleared successfully')
+      } catch (supabaseError) {
+        console.warn('Supabase sign out failed (may not be signed in):', supabaseError)
       }
       
       // Clear local state
+      authLog('Clearing local auth state')
       setUser(null)
       setSession(null)
       
-      // Redirect to auth page
-      if (isProtectedRoute) {
-        handleRedirect('/auth')
-      }
+      // Always redirect to auth page after sign out, regardless of current route
+      authLog('Sign out complete, redirecting to auth page')
+      handleRedirect('/auth')
     } catch (error) {
       console.error('Sign out exception:', error)
+      // Even if there's an error, clear local state and redirect
+      authLog('Sign out failed, forcing cleanup and redirect')
+      setUser(null)
+      setSession(null)
+      handleRedirect('/auth')
     } finally {
       hideGlobalLoading()
     }
-  }, [showGlobalLoading, hideGlobalLoading, isProtectedRoute, handleRedirect, user, supabase.auth])
+  }, [showGlobalLoading, hideGlobalLoading, handleRedirect, supabase.auth])
 
   const value: AuthContextType = {
     user,
@@ -354,7 +389,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log('AuthContext value:', {
+    log.debug('AuthContext value:', {
       hasUser: !!user,
       userEmail: user?.email,
       hasSession: !!session,

@@ -12,7 +12,7 @@ import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
-import { logUserData } from "@/lib/utils"
+import { log } from "@/lib/utils"
 import { getUserDataWithFallback, type UserData } from "@/lib/user-utils"
 import { eazynetAPI } from "@/lib/eazynet-api"
 import {
@@ -196,7 +196,7 @@ function ProfileContent() {
             setFullName(user.user_metadata?.name || "")
             setEmail(user.email || "")
             if (process.env.NODE_ENV === 'development') {
-              logUserData('Profile', user, { action: 'User Data Set (Session Fallback)' })
+              log.debug('Profile: User Data Set (Session Fallback)', { user, action: 'User Data Set (Session Fallback)' })
             }
           }
         }
@@ -207,16 +207,15 @@ function ProfileContent() {
 
   // Fetch user profile if not available
   useEffect(() => {
-    if (!user) {
-      console.log('Profile: No user, fetching profile...')
+    // Only fetch profile if we don't have user data and we're not in the middle of signing out
+    if (!user && !userData) {
+      log.debug('Profile: No user data available, fetching profile...')
       fetchUserProfile()
     }
-  }, [user, fetchUserProfile])
-
-
+  }, [user, userData, fetchUserProfile])
 
   const handleUpdateProfile = async () => {
-    console.log('Profile: Updating profile for user:', user?.id, 'new name:', fullName)
+    log.debug('Profile: Updating profile for user:', { userId: user?.id, newName: fullName })
     
     await withLoading('update-profile', async () => {
       try {
@@ -230,7 +229,7 @@ function ProfileContent() {
         // TODO: Update user data in auth context when updateAuthState is implemented
       } catch (error) {
         toast.error("Failed to update profile")
-        console.error('Profile update exception:', error)
+        log.error('Profile update exception:', error)
       }
     })
   }
@@ -239,11 +238,11 @@ function ProfileContent() {
 
   const handleSignOut = async () => {
     try {
-      console.log('Profile: Starting sign-out process')
+      log.debug('Profile: Starting sign-out process')
       await signOut()
       toast.success("Signed out successfully")
     } catch (err) {
-      console.error('Exception during sign out:', err)
+      log.error('Exception during sign out:', err)
       toast.error("Error signing out")
     }
   }
@@ -289,7 +288,7 @@ function ProfileContent() {
         setConfirmPassword("")
       } catch (error) {
         toast.error("Failed to change password")
-        console.error('Password change error:', error)
+        log.error('Password change error:', error)
       }
     })
   }
