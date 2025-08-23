@@ -5,26 +5,35 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Utility function to log user data consistently
-export function logUserData(context: string, user: { [key: string]: unknown } | null | { id: string; email?: string; name?: string; user_metadata?: unknown }, additionalData?: { [key: string]: unknown }) {
-  // Only log in development and only if verbose logging is enabled
-  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_VERBOSE_LOGGING === 'true') {
-    const logData = {
-      context,
-      timestamp: new Date().toISOString(),
-      user: user ? {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        metadata: user.user_metadata
-      } : null,
-      ...additionalData
+// Utility functions for the application
+
+// Production-ready logging utility
+export const log = {
+  debug: (message: string, data?: unknown) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${message}`, data || '')
     }
-    
-    console.log(`[${context}] User Data:`, logData)
-    return logData
+  },
+  info: (message: string, data?: unknown) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[INFO] ${message}`, data || '')
+    }
+  },
+  warn: (message: string, data?: unknown) => {
+    // Always log warnings in production for monitoring
+    console.warn(`[WARN] ${message}`, data || '')
+  },
+  error: (message: string, data?: unknown) => {
+    // Always log errors in production for monitoring
+    console.error(`[ERROR] ${message}`, data || '')
   }
-  return null
+}
+
+// User data logging utility (development only)
+export const logUserData = (context: string, user: unknown, logData?: Record<string, unknown>) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[${context}] User Data:`, logData)
+  }
 }
 
 // Utility function to log authentication events

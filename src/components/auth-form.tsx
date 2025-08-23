@@ -130,7 +130,8 @@ export function AuthForm() {
           const response = await eazynetAPI.register({
             email: formData.email,
             password: formData.password,
-            name: formData.name,
+            fullName: formData.name,
+            confirmPassword: formData.confirmPassword,
           })
 
           if (response.token) {
@@ -165,8 +166,27 @@ export function AuthForm() {
           }
         } catch (error) {
           log('Signup exception:', error)
-          // Extract the specific error message from the Error object
-          const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.'
+          
+          // Extract user-friendly error message
+          let errorMessage = 'Signup failed. Please try again.'
+          
+          if (error instanceof Error) {
+            try {
+              // Try to parse the error message for better user experience
+              if (error.message.includes('validation errors')) {
+                errorMessage = 'Please check your input and try again.'
+              } else if (error.message.includes('already exists')) {
+                errorMessage = 'An account with this email already exists.'
+              } else if (error.message.includes('password')) {
+                errorMessage = 'Password requirements not met. Please check your password.'
+              } else {
+                errorMessage = error.message
+              }
+            } catch {
+              errorMessage = 'Signup failed. Please try again.'
+            }
+          }
+          
           setValidationError(errorMessage)
           return
         }
