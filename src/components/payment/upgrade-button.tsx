@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ExternalLink, CreditCard, Clock, CheckCircle } from "lucide-react"
+import { ExternalLink, CreditCard, Clock, CheckCircle, Crown } from "lucide-react"
 import { eazynetAPI } from "@/lib/eazynet-api"
 
 interface UpgradeButtonProps {
@@ -18,6 +18,7 @@ interface UpgradeButtonProps {
   children: React.ReactNode
   successUrl?: string
   cancelUrl?: string
+  showProBadge?: boolean // Whether to show Pro badge when user is already Pro
 }
 
 export function UpgradeButton({
@@ -25,11 +26,27 @@ export function UpgradeButton({
   size = 'default',
   className = '',
   planType = 'pro',
-  children
+  children,
+  showProBadge = true
 }: UpgradeButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
-  const { user } = useAuth()
+  const { user, isPro } = useAuth()
+
+  // If user is already Pro, show Pro badge instead of upgrade button
+  if (isPro && showProBadge) {
+    return (
+      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold">
+        <Crown className="h-4 w-4" />
+        <span>Pro Active</span>
+      </div>
+    )
+  }
+
+  // If user is Pro and we don't want to show the badge, don't render anything
+  if (isPro && !showProBadge) {
+    return null
+  }
 
   const handleUpgrade = async () => {
     if (!user) {

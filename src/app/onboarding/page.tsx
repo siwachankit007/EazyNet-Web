@@ -7,6 +7,7 @@ import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDownIcon } from "@heroicons/react/24/outline"
 import { UpgradeButton } from "@/components/payment/upgrade-button"
+import { useAuth } from "@/lib/auth-context"
 
 // Interactive FAQ Component
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -162,6 +163,7 @@ function TableRow({
 
 export default function OnboardingPage() {
   const [isVisible, setIsVisible] = useState(false)
+  const { isPro } = useAuth()
 
   useEffect(() => {
     setIsVisible(true)
@@ -400,19 +402,21 @@ export default function OnboardingPage() {
           </table>
         </div>
         
-        <motion.div 
-          className="mt-10"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <UpgradeButton 
-            className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-            planType="pro"
+        {!isPro && (
+          <motion.div 
+            className="mt-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            Upgrade to Pro
-          </UpgradeButton>
-        </motion.div>
+            <UpgradeButton 
+              className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+              planType="pro"
+            >
+              Upgrade to Pro
+            </UpgradeButton>
+          </motion.div>
+        )}
       </section>
 
       {/* Feature Deep Dive Section */}
@@ -439,19 +443,21 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-                 <motion.div 
-           className="mt-12"
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           viewport={{ once: true }}
-         >
-           <UpgradeButton 
-             className="upgrade-pro-btn inline-block px-8 py-3 bg-white text-gray-800 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-             planType="pro"
-           >
-             Upgrade to Pro
-           </UpgradeButton>
-         </motion.div>
+                 {!isPro && (
+                   <motion.div 
+                     className="mt-12"
+                     initial={{ opacity: 0, y: 20 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true }}
+                   >
+                     <UpgradeButton 
+                       className="upgrade-pro-btn inline-block px-8 py-3 bg-white text-gray-800 rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+                       planType="pro"
+                     >
+                       Upgrade to Pro
+                     </UpgradeButton>
+                   </motion.div>
+                 )}
       </section>
 
       {/* Onboarding Pro Section */}
@@ -495,12 +501,14 @@ export default function OnboardingPage() {
            whileInView={{ opacity: 1, y: 0 }}
            viewport={{ once: true }}
          >
-           <UpgradeButton 
-             className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
-             planType="pro"
-           >
-             Upgrade to Pro
-           </UpgradeButton>
+           {!isPro && (
+             <UpgradeButton 
+               className="upgrade-pro-btn inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all transform hover:scale-105"
+               planType="pro"
+             >
+               Upgrade to Pro
+             </UpgradeButton>
+           )}
          </motion.div>
       </section>
 

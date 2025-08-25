@@ -57,6 +57,34 @@ interface ProfileResponse {
   lastLoginAt: string
 }
 
+interface SubscriptionSummaryResponse {
+  hasActiveSubscription: boolean
+  isTrialActive: boolean
+  trialEndsAt: string | null
+  subscriptionExpiresAt: string | null
+  subscriptionStatus: number
+  isPro: boolean
+}
+
+interface StartTrialRequest {
+  currency: string
+}
+
+interface UserDto {
+  id: string
+  email: string
+  name: string
+  isPro: boolean
+  isInterestedInPro: boolean
+  isTrial: boolean
+  trialEndsAt: string | null
+  subscriptionStatus: number
+  upgradedFromTrial: boolean
+  permanentProSince: string | null
+  createdAt: string
+  lastLoginAt: string | null
+}
+
 interface ProfileUpdateRequest {
   fullname?: string
   email?: string
@@ -78,8 +106,14 @@ class EazyNetAPI {
   constructor() {
     // Load tokens from localStorage on initialization
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('eazynet_token')
-      this.refreshToken = localStorage.getItem('eazynet_refresh_token')
+      try {
+        this.token = localStorage.getItem('eazynet_token')
+        this.refreshToken = localStorage.getItem('eazynet_refresh_token')
+      } catch (error) {
+        log.warn('Failed to access localStorage:', error)
+        this.token = null
+        this.refreshToken = null
+      }
     }
   }
 
@@ -295,6 +329,19 @@ class EazyNetAPI {
     })
   }
 
+  async getSubscription(): Promise<SubscriptionSummaryResponse> {
+    const response = await this.makeRequest<SubscriptionSummaryResponse>('/api/User/subscription')
+    return response
+  }
+
+  async startTrial(currency: string = 'USD'): Promise<UserDto> {
+    const response = await this.makeRequest<UserDto>('/api/User/start-trial', {
+      method: 'POST',
+      body: JSON.stringify({ currency })
+    })
+    return response
+  }
+
   // Waitlist endpoint
   async updateInterestedInProFlag(value: boolean): Promise<boolean> {
     const response = await this.makeRequest<boolean>(`/api/User/profile/interested-in-pro?value=${value}`, {
@@ -339,6 +386,18 @@ class EazyNetAPI {
 
   getRefreshToken(): string | null {
     return this.refreshToken
+  }
+
+  // Method to refresh token state from localStorage
+  refreshTokenState(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        this.token = localStorage.getItem('eazynet_token')
+        this.refreshToken = localStorage.getItem('eazynet_refresh_token')
+      } catch (error) {
+        log.warn('Failed to refresh token state from localStorage:', error)
+      }
+    }
   }
 
   isAuthenticated(): boolean {
@@ -412,5 +471,8 @@ export type {
   AuthResponse,
   ProfileResponse,
   ProfileUpdateRequest,
+  SubscriptionSummaryResponse,
+  StartTrialRequest,
+  UserDto,
   JwtPayload
 }

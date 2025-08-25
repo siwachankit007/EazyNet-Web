@@ -63,6 +63,7 @@ export function ProBenefits() {
         <UpgradeButton 
           className="w-full bg-purple-600 hover:bg-purple-700"
           planType="pro"
+          showProBadge={false}
         >
           Upgrade to Pro - $4.99/month
         </UpgradeButton>

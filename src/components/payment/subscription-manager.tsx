@@ -3,25 +3,13 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { UpgradeButton } from "@/components/payment/upgrade-button"
-
-interface SubscriptionData {
-  id: string
-  user_id: string
-  plan_type: 'trial' | 'pro'
-  status: 'active' | 'cancelled' | 'expired' | 'authenticated' | 'created'
-  is_trial: boolean
-  trial_started_at?: string
-  trial_ends_at?: string
-  current_period_start?: string
-  current_period_end?: string
-  cancelled_at?: string
-  created_at: string
-  updated_at: string
-}
+import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData } from "@/lib/subscription-types"
+import { eazynetAPI } from "@/lib/eazynet-api"
 
 export function SubscriptionManager() {
   const { user } = useAuth()
@@ -33,14 +21,26 @@ export function SubscriptionManager() {
     if (!user) return
 
     try {
-      // TODO: Implement subscription fetching
-      // This will be replaced with actual subscription management
-      console.log('Fetching subscription for user:', user.id)
+      // Fetch subscription data from backend
+      const subscriptionResponse = await eazynetAPI.getSubscription()
       
-      // Placeholder - no subscription data for now
-      setSubscription(null)
+      // Convert backend response to frontend format
+      const subscription: SubscriptionData = {
+        id: `sub_${user.id}`,
+        user_id: user.id,
+        plan_type: subscriptionResponse.isPro ? PlanType.Pro : PlanType.Free,
+        status: SubscriptionUtils.fromNumeric(subscriptionResponse.subscriptionStatus),
+        is_trial: subscriptionResponse.isTrialActive,
+        trial_ends_at: subscriptionResponse.trialEndsAt || undefined,
+        current_period_end: subscriptionResponse.subscriptionExpiresAt || undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      
+      setSubscription(subscription)
     } catch (error) {
       console.error('Error fetching subscription:', error)
+      setSubscription(null)
     } finally {
       setIsLoading(false)
     }
@@ -108,7 +108,7 @@ export function SubscriptionManager() {
           <p className="text-sm text-gray-600 mb-4">
             You don&apos;t have an active subscription. Upgrade to unlock premium features.
           </p>
-          <UpgradeButton>
+          <UpgradeButton showProBadge={false}>
             Upgrade to Pro
           </UpgradeButton>
         </CardContent>
@@ -120,18 +120,15 @@ export function SubscriptionManager() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'text-green-600'
-      case 'cancelled':
-        return 'text-red-600'
-      case 'expired':
-        return 'text-yellow-600'
-      default:
-        return 'text-gray-600'
+  const getStatusInfo = (status: SubscriptionStatus) => {
+    return {
+      displayName: SubscriptionUtils.getStatusDisplayName(status),
+      color: SubscriptionUtils.getStatusColor(status),
+      badgeColor: SubscriptionUtils.getStatusBadgeColor(status)
     }
   }
+
+  const statusInfo = getStatusInfo(subscription.status)
 
   return (
     <Card>
@@ -148,27 +145,68 @@ export function SubscriptionManager() {
           
           <div className="flex justify-between items-center">
             <span className="font-medium">Status:</span>
-            <span className={`capitalize ${getStatusColor(subscription.status)}`}>
-              {subscription.status}
-            </span>
+            <Badge className={statusInfo.badgeColor}>
+              {statusInfo.displayName}
+            </Badge>
           </div>
           
           {subscription.current_period_start && (
             <div className="flex justify-between items-center">
               <span className="font-medium">Current Period:</span>
-              <span>{formatDate(subscription.current_period_start)} - {subscription.current_period_end ? formatDate(subscription.current_period_end) : 'Ongoing'}</span>
+              <span className="text-sm">
+                {formatDate(subscription.current_period_start)} - {subscription.current_period_end ? formatDate(subscription.current_period_end) : 'Ongoing'}
+              </span>
             </div>
           )}
           
           {subscription.is_trial && subscription.trial_ends_at && (
             <div className="flex justify-between items-center">
               <span className="font-medium">Trial Ends:</span>
-              <span>{formatDate(subscription.trial_ends_at)}</span>
+              <span className="text-sm">{formatDate(subscription.trial_ends_at)}</span>
+            </div>
+          )}
+
+          {subscription.cancelled_at && (
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Cancelled:</span>
+              <span className="text-sm">{formatDate(subscription.cancelled_at)}</span>
+            </div>
+          )}
+
+          {subscription.suspended_at && (
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Suspended:</span>
+              <span className="text-sm">{formatDate(subscription.suspended_at)}</span>
+            </div>
+          )}
+          
+          {/* Status-specific messages */}
+          {subscription.status === SubscriptionStatus.Expired && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                Your subscription has expired. Renew to continue using Pro features.
+              </p>
+            </div>
+          )}
+
+          {subscription.status === SubscriptionStatus.Suspended && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+              <p className="text-sm text-orange-800">
+                Your subscription is suspended. Please contact support for assistance.
+              </p>
+            </div>
+          )}
+
+          {subscription.status === SubscriptionStatus.Cancelled && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-800">
+                Your subscription has been cancelled. You can reactivate it below.
+              </p>
             </div>
           )}
           
           <div className="flex gap-2 pt-4">
-            {subscription.status === 'active' && (
+            {SubscriptionUtils.canCancel(subscription.status) && (
               <Button 
                 variant="outline" 
                 onClick={handleCancelSubscription}
@@ -178,13 +216,19 @@ export function SubscriptionManager() {
               </Button>
             )}
             
-            {subscription.status === 'cancelled' && (
+            {SubscriptionUtils.canReactivate(subscription.status) && (
               <Button 
                 onClick={handleReactivateSubscription}
                 className="flex-1"
               >
                 Reactivate Subscription
               </Button>
+            )}
+
+            {subscription.status === SubscriptionStatus.Expired && (
+              <UpgradeButton showProBadge={false} className="flex-1">
+                Renew Subscription
+              </UpgradeButton>
             )}
           </div>
         </div>
