@@ -10,6 +10,7 @@ import { TestimonialsSection } from "@/components/testimonials-section"
 import { PricingSection } from "@/components/pricing-section"
 import { CTASection } from "@/components/cta-section"
 import { FAQSection } from "@/components/faq-section"
+import { FAQSchema } from "@/components/faq-schema"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 
@@ -28,6 +29,7 @@ export default function Home() {
       <PricingSection />
       <CTASection />
       <FAQSection />
+      <FAQSchema />
       <ContactSection />
       <Footer />
     </main>

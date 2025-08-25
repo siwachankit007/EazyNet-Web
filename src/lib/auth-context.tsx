@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { eazynetAPI } from '@/lib/eazynet-api'
+import { eazynetAPI, type JwtPayload } from '@/lib/eazynet-api'
 import { createClient } from '@/lib/supabase/client'
 import { useLoading } from '@/components/loading-context'
 import { log } from '@/lib/utils'
@@ -13,6 +13,7 @@ interface EazyNetUser {
   id: string
   email: string
   name: string
+  isPro?: boolean
 }
 
 interface EazyNetSession {
@@ -31,6 +32,7 @@ interface AuthContextType {
   isLoading: boolean
   signOut: () => Promise<void>
   isAuthenticated: boolean
+  isPro: boolean
   updateAuthState: (user: EazyNetUser | null, session: EazyNetSession) => void
   updateSupabaseAuthState: (user: User, session: Session) => void
   fetchUserProfile: () => Promise<void>
@@ -91,24 +93,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const getInitialSession = async () => {
       try {
-        // Only check auth for protected or auth routes
-        if (!requiresAuthCheck) {
-          authLog('Skipping auth check for public route:', pathname)
-          setIsLoading(false)
-          return
-        }
-
-        authLog('Getting initial session for protected/auth route:', pathname)
+        // Always check auth state for all routes, but only redirect for protected/auth routes
         
         // Check if user is authenticated via EazyNet backend
-        if (eazynetAPI.isAuthenticated()) {
+        // First refresh token state from localStorage to ensure we have the latest
+        eazynetAPI.refreshTokenState()
+        const eazynetAuthStatus = eazynetAPI.isAuthenticated()
+        
+        if (eazynetAuthStatus) {
           const tokenUser = eazynetAPI.getUserFromToken()
           if (tokenUser) {
             // Create temporary user data from token (will be updated with fresh data)
             const tempUserData: EazyNetUser = {
               id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
               email: (tokenUser.email as string) || '',
-              name: (tokenUser.name as string) || 'User'
+              name: (tokenUser.name as string) || 'User',
+              isPro: Boolean((tokenUser as JwtPayload).isPro) || false
             }
             
             const sessionData: EazyNetSession = {
@@ -117,11 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               user: tempUserData
             }
             
-            authLog('Initial EazyNet session loaded from token', {
-              hasUser: !!tempUserData,
-              userEmail: tempUserData.email,
-              userName: tempUserData.name
-            })
+
 
             setSession(sessionData)
             setUser(tempUserData)
@@ -131,11 +127,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
               const profileData = await eazynetAPI.getProfile()
               if (profileData && profileData.name !== 'User') {
-                const freshUserData: EazyNetUser = {
-                  id: profileData.id,
-                  email: profileData.email,
-                  name: profileData.name
-                }
+                              const freshUserData: EazyNetUser = {
+                id: profileData.id,
+                email: profileData.email,
+                name: profileData.name,
+                isPro: profileData.isPro
+              }
                 setUser(freshUserData)
                 
                 // Update session with fresh user data
@@ -150,12 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // Keep using token data if profile fetch fails
             }
 
-            // Handle initial redirect based on session
+            // Handle initial redirect based on session (only for protected/auth routes)
             if (isAuthRoute) {
               handleRedirect('/dashboard')
             }
           } else {
-            // Invalid token, clear and redirect
+            // Invalid token, clear and redirect (only for protected routes)
             eazynetAPI.logout()
             if (isProtectedRoute) {
               handleRedirect('/auth')
@@ -168,26 +165,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const { data: { session: supabaseSession } } = await supabase.auth.getSession()
           
           if (supabaseSession?.user) {
-            authLog('Initial Supabase session loaded', {
-              hasUser: !!supabaseSession.user,
-              userEmail: supabaseSession.user.email
-            })
+
 
             setSession(supabaseSession)
             setUser(supabaseSession.user)
             setIsLoading(false)
 
-            // Handle initial redirect based on session
+            // Handle initial redirect based on session (only for protected/auth routes)
             if (isAuthRoute) {
               handleRedirect('/dashboard')
             }
           } else {
-            // User is not authenticated
+            // User is not authenticated - only redirect for protected routes
             if (isProtectedRoute) {
               handleRedirect('/auth')
             }
             setIsLoading(false)
           }
+        }
+        
+        // Ensure loading is set to false for public routes if we haven't set it yet
+        if (!requiresAuthCheck && isMounted) {
+          setIsLoading(false)
         }
       } catch (error) {
         console.error('Error getting initial session:', error)
@@ -203,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
       if (!isMounted) return
 
-      authLog('Supabase auth state change', `${event} ${supabaseSession?.user?.email}`)
+
       
       if (supabaseSession?.user && event === 'SIGNED_IN') {
         try {
@@ -221,7 +220,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const unifiedUser: EazyNetUser = {
             id: authResponse.user.id,
             email: authResponse.user.email,
-            name: authResponse.user.name
+            name: authResponse.user.name,
+            isPro: authResponse.user.isPro
           }
 
           // Create unified session
@@ -236,12 +236,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(unifiedSession)
           setIsLoading(false)
 
-          // Handle redirect
+          // Handle redirect (only for protected/auth routes)
           if (isAuthRoute) {
             handleRedirect('/dashboard')
           }
 
-          authLog('OAuth user converted to EazyNet user', unifiedUser)
+
         } catch (error) {
           console.error('Failed to convert OAuth user to EazyNet user:', error)
           
@@ -255,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        authLog('Supabase session ended, clearing all auth state')
+
         
         // Clear both Supabase and EazyNet auth states
         setSession(null)
@@ -263,7 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Also clear EazyNet tokens if they exist
         if (eazynetAPI.isAuthenticated()) {
-          authLog('Clearing EazyNet tokens due to Supabase sign out')
+  
           eazynetAPI.logout()
         }
         
@@ -281,16 +281,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
 
   const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
-    authLog('updateAuthState called', { userEmail: user?.email, userName: user?.name, isAuthRoute, pathname })
+
     setUser(user)
     setSession(session)
     
     // If user is on auth page and successfully authenticated, redirect to dashboard
     if (isAuthRoute) {
-      authLog('User authenticated on auth page, redirecting to dashboard')
       handleRedirect('/dashboard')
     }
-  }, [isAuthRoute, handleRedirect, pathname])
+  }, [isAuthRoute, handleRedirect])
 
   const updateSupabaseAuthState = useCallback((user: User, session: Session) => {
     setUser(user)
@@ -304,13 +303,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      // Don't fetch profile if we're in the middle of signing out
-      if (!eazynetAPI.isAuthenticated()) {
-        authLog('Cannot fetch profile: not authenticated')
-        // Redirect to auth page if not authenticated
-        handleRedirect('/auth')
-        return
-      }
+              // Don't fetch profile if we're in the middle of signing out
+        if (!eazynetAPI.isAuthenticated()) {
+          // Redirect to auth page if not authenticated
+          handleRedirect('/auth')
+          return
+        }
 
       // All users now go through EazyNet backend
       const profileData = await eazynetAPI.getProfile()
@@ -318,10 +316,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData: EazyNetUser = {
           id: profileData.id,
           email: profileData.email,
-          name: profileData.name
+          name: profileData.name,
+          isPro: profileData.isPro
         }
         setUser(userData)
-        authLog('User profile fetched and set:', userData)
+        
+        // Also update the session with the latest profile data
+        if (session && 'token' in session) {
+          const updatedSession = {
+            ...session,
+            user: userData
+          }
+          setSession(updatedSession)
+        }
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -334,40 +341,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      authLog('Starting sign out process')
       showGlobalLoading()
       
       // For OAuth users, we need to clear both EazyNet and Supabase sessions
       // Check if user is authenticated via EazyNet backend
       if (eazynetAPI.isAuthenticated()) {
-        authLog('Clearing EazyNet authentication')
         await eazynetAPI.logout()
-      } else {
-        authLog('No EazyNet authentication to clear')
       }
       
       // Always clear Supabase session for OAuth users
       // This ensures Google OAuth session is properly terminated
       try {
-        authLog('Clearing Supabase session')
         await supabase.auth.signOut()
-        authLog('Supabase session cleared successfully')
       } catch (supabaseError) {
         console.warn('Supabase sign out failed (may not be signed in):', supabaseError)
       }
       
       // Clear local state
-      authLog('Clearing local auth state')
       setUser(null)
       setSession(null)
       
       // Always redirect to auth page after sign out, regardless of current route
-      authLog('Sign out complete, redirecting to auth page')
       handleRedirect('/auth')
     } catch (error) {
       console.error('Sign out exception:', error)
       // Even if there's an error, clear local state and redirect
-      authLog('Sign out failed, forcing cleanup and redirect')
       setUser(null)
       setSession(null)
       handleRedirect('/auth')
@@ -382,25 +380,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: requiresAuthCheck ? isLoading : false, // Don't show loading for public routes
     signOut,
     isAuthenticated: !!user || !!session,
+    isPro: (user as EazyNetUser)?.isPro || false,
     updateAuthState,
     updateSupabaseAuthState,
     fetchUserProfile
   }
 
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    log.debug('AuthContext value:', {
-      hasUser: !!user,
-      userEmail: user?.email,
-      hasSession: !!session,
-      isLoading,
-      isAuthenticated: !!user || !!session,
-      pathname,
-      isAuthRoute,
-      isProtectedRoute,
-      requiresAuthCheck
-    })
-  }
+
 
   return (
     <AuthContext.Provider value={value}>

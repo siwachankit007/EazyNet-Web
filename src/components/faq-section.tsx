@@ -7,7 +7,7 @@ interface FAQItem {
   answer: string
 }
 
-const faqData: FAQItem[] = [
+export const faqData: FAQItem[] = [
   {
     question: "What is EazyNet?",
     answer: "EazyNet is a Chrome extension that helps you group, search, and organize tabs to reduce clutter and improve focus."

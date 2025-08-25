@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SubscriptionManager } from "@/components/payment/subscription-manager"
+import { TrialButton } from "@/components/payment/trial-button"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { toast } from "sonner"
@@ -13,8 +14,21 @@ import { useLoading } from "@/components/loading-context"
 import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
 import { log } from "@/lib/utils"
-import { getUserDataWithFallback, type UserData } from "@/lib/user-utils"
 import { eazynetAPI } from "@/lib/eazynet-api"
+import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData } from "@/lib/subscription-types"
+import { Badge } from "@/components/ui/badge"
+
+// Local interface for profile page user data
+interface ProfileUserData {
+  id: string
+  email: string
+  name?: string
+  isPro: boolean
+  isTrial?: boolean
+  createdAt: string
+  updatedAt: string
+  subscription?: SubscriptionData
+}
 import {
   Dialog,
   DialogContent,
@@ -139,7 +153,7 @@ function PolicyModal({ isOpen, onClose, type }: {
 
 function ProfileContent() {
   const { user, fetchUserProfile } = useAuth()
-  const [userData, setUserData] = useState<UserData | null>(null)
+  const [userData, setUserData] = useState<ProfileUserData | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -170,38 +184,58 @@ function ProfileContent() {
 
   useEffect(() => {
     if (user) {
-      // Check if this is an EazyNet user (has name property)
-      if ('name' in user) {
-        // For EazyNet users, use the user data directly
-        setUserData({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          isPro: false, // Default value, can be updated later if needed
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-        setFullName(user.name)
-        setEmail(user.email)
-      } else {
-        // For Supabase users, fetch additional data
-        const getUserData = async () => {
-          const freshUserData = await getUserDataWithFallback(user, false) // Don't force refresh
-          if (freshUserData) {
-            setUserData(freshUserData)
-            setFullName(freshUserData.name || "")
-            setEmail(freshUserData.email || "")
-          } else {
-            // Fallback to session data
-            setFullName(user.user_metadata?.name || "")
-            setEmail(user.email || "")
-            if (process.env.NODE_ENV === 'development') {
-              log.debug('Profile: User Data Set (Session Fallback)', { user, action: 'User Data Set (Session Fallback)' })
-            }
+      // All users now go through EazyNet backend
+      const fetchUserData = async () => {
+        try {
+          // Fetch both profile and subscription data
+          const [profileData, subscriptionData] = await Promise.all([
+            eazynetAPI.getProfile(),
+            eazynetAPI.getSubscription()
+          ])
+
+          // Convert backend subscription data to frontend format
+          const subscription: SubscriptionData = {
+            id: `sub_${user.id}`,
+            user_id: user.id,
+            plan_type: subscriptionData.isPro ? PlanType.Pro : PlanType.Free,
+            status: SubscriptionUtils.fromNumeric(subscriptionData.subscriptionStatus),
+            is_trial: subscriptionData.isTrialActive,
+            trial_ends_at: subscriptionData.trialEndsAt || undefined,
+            current_period_end: subscriptionData.subscriptionExpiresAt || undefined,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
+
+          const userDataObj = {
+            id: profileData.id,
+            email: profileData.email,
+            name: profileData.name,
+            isPro: subscriptionData.isPro,
+            isTrial: subscriptionData.isTrialActive,
+            createdAt: profileData.createdAt,
+            updatedAt: profileData.lastLoginAt || profileData.createdAt,
+            subscription
+          }
+
+          setUserData(userDataObj)
+          setFullName(profileData.name)
+          setEmail(profileData.email)
+        } catch (error) {
+          console.error('Failed to fetch user data:', error)
+          // Fallback to user data if backend fetch fails
+          setUserData({
+            id: user.id,
+            email: user.email || '',
+            name: 'name' in user ? user.name : (user.user_metadata?.name as string || ''),
+            isPro: false, // Fallback value
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          })
+          setFullName('name' in user ? user.name : (user.user_metadata?.name as string || ''))
+          setEmail(user.email || '')
         }
-        getUserData()
       }
+      fetchUserData()
     }
   }, [user])
 
@@ -339,10 +373,10 @@ function ProfileContent() {
                   </div>
                 </div>
                 
-                {/* Account Status */}
+                {/* Account Status Summary */}
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">Account Status</p>
+                    <p className="font-medium text-gray-900">Account Type</p>
                     <p className="text-sm text-gray-600">
                       {userData?.isPro ? "Pro Account" : "Free Account"}
                     </p>
@@ -355,6 +389,25 @@ function ProfileContent() {
                     {userData?.isPro ? "PRO" : "FREE"}
                   </div>
                 </div>
+                
+                {/* Trial Button for Free Users */}
+                {(!userData?.isPro && !userData?.isTrial) && (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-center">
+                      <h3 className="font-medium text-blue-900 mb-2">Ready to Upgrade?</h3>
+                      <p className="text-sm text-blue-700 mb-3">
+                        Start your free 14-day trial and unlock all Pro features
+                      </p>
+                      <TrialButton 
+                        variant="default" 
+                        size="sm"
+                        showSubscriptionStatus={true}
+                      >
+                        Start Free Trial
+                      </TrialButton>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="flex gap-3">
                   {isEditing ? (
@@ -461,30 +514,48 @@ function ProfileContent() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Account Status */}
-             {/* Subscription Management */}
-             <SubscriptionManager />
+            {/* Subscription Management */}
+            <SubscriptionManager />
+            
+            {/* Trial Button - Show only for free users */}
+            {(!userData?.isPro && !userData?.isTrial) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Start Your Free Trial</CardTitle>
+                  <CardDescription>
+                    Try Pro features free for 7 days. No credit card required.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TrialButton 
+                    variant="default" 
+                    className="w-full" 
+                    showSubscriptionStatus={true}
+                  >
+                    Start Free Trial
+                  </TrialButton>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Account Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Account Status</CardTitle>
+                <CardTitle>Account Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Plan</span>
-                    <span className="font-medium">
-                    {userData?.isPro ? "Pro" : "Free Account"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Member Since</span>
-                    <span className="font-medium">
-                      N/A
+                    <span className="font-medium text-sm">
+                      {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
+                  
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Last Sign In</span>
-                    <span className="font-medium">
-                      N/A
+                    <span className="text-sm text-gray-600">Last Updated</span>
+                    <span className="font-medium text-sm">
+                      {userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                 </div>

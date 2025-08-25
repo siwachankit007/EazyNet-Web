@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
+          },
+          // SEO and performance headers
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow'
           }
         ]
       }
@@ -34,8 +39,15 @@ const nextConfig: NextConfig = {
   // Ensure proper image optimization
   images: {
     domains: ['eazynet.app'],
-    formats: ['image/webp', 'image/avif']
-  }
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year cache for images
+  },
+  // Enable compression
+  compress: true,
+  // Enable powered by header removal
+  poweredByHeader: false,
+  // Enable strict mode for better development
+  reactStrictMode: true
 };
 
 export default nextConfig;

@@ -1,36 +1,10 @@
-import { createClient } from "@/lib/supabase/client"
 import { logUserData } from "@/lib/utils"
+import { eazynetAPI, type SubscriptionSummaryResponse } from "@/lib/eazynet-api"
+import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData, type UserData } from "@/lib/subscription-types"
 
 // Cache for user data to avoid excessive database calls
 const userDataCache = new Map<string, { data: UserData; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-
-export interface UserData {
-  id: string
-  email: string
-  name?: string
-  isPro: boolean
-  isTrial?: boolean
-  createdAt: string
-  updatedAt: string
-  user_metadata?: Record<string, unknown>
-  subscription?: SubscriptionData
-}
-
-export interface SubscriptionData {
-  id: string
-  user_id: string
-  plan_type: 'trial' | 'pro'
-  status: 'active' | 'cancelled' | 'expired' | 'authenticated' | 'created'
-  is_trial: boolean
-  trial_started_at?: string
-  trial_ends_at?: string
-  current_period_start?: string
-  current_period_end?: string
-  cancelled_at?: string
-  created_at: string
-  updated_at: string
-}
 
 /**
  * Fetches user data from database with caching for performance
@@ -39,8 +13,6 @@ export interface SubscriptionData {
  * @returns Promise<UserData | null>
  */
 export async function fetchUserData(userId: string, forceRefresh = false): Promise<UserData | null> {
-  const supabase = createClient()
-  
   // Check cache first (unless force refresh)
   if (!forceRefresh) {
     const cached = userDataCache.get(userId)
@@ -50,51 +22,40 @@ export async function fetchUserData(userId: string, forceRefresh = false): Promi
   }
 
   try {
-    // Fetch user data from auth.users and profiles
-    const [authResult, profileResult] = await Promise.all([
-      supabase.auth.getUser(),
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle()
+    // Check if user is authenticated via EazyNet backend
+    if (!eazynetAPI.isAuthenticated()) {
+      console.error('UserData: User not authenticated via EazyNet backend')
+      return null
+    }
+
+    // Fetch user profile and subscription from backend
+    const [profileData, subscriptionData] = await Promise.all([
+      eazynetAPI.getProfile(),
+      eazynetAPI.getSubscription()
     ])
 
-    if (authResult.error) {
-      console.error('UserData: Error fetching auth user:', authResult.error)
-      return null
-    }
-
-    const authUser = authResult.data.user
-    if (!authUser) {
-      console.error('UserData: No auth user found')
-      return null
-    }
-
-    // Fetch active subscription for the user
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (subscriptionError && subscriptionError.code !== 'PGRST116') {
-      console.error('UserData: Error fetching subscription data:', subscriptionError)
+    // Convert backend subscription data to frontend format
+    const subscription: SubscriptionData = {
+      id: `sub_${userId}`, // Generate a local ID since backend doesn't provide one
+      user_id: userId,
+      plan_type: subscriptionData.isPro ? PlanType.Pro : PlanType.Free,
+      status: SubscriptionUtils.fromNumeric(subscriptionData.subscriptionStatus),
+      is_trial: subscriptionData.isTrialActive,
+      trial_ends_at: subscriptionData.trialEndsAt || undefined,
+      current_period_end: subscriptionData.subscriptionExpiresAt || undefined,
+      created_at: new Date().toISOString(), // Backend doesn't provide this
+      updated_at: new Date().toISOString()  // Backend doesn't provide this
     }
 
     const user: UserData = {
-      id: authUser.id,
-      email: authUser.email || '',
-      name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || '',
-      isPro: Boolean(subscriptionData?.plan_type === 'pro' || subscriptionData?.plan_type === 'trial'),
-      isTrial: Boolean(subscriptionData?.is_trial),
-      createdAt: authUser.created_at || new Date().toISOString(),
-      updatedAt: profileResult?.data?.updated_at || authUser.updated_at || new Date().toISOString(),
-      user_metadata: profileResult?.data?.preferences || authUser.user_metadata,
-      subscription: subscriptionData || undefined
+      id: profileData.id,
+      email: profileData.email,
+      name: profileData.name,
+      isPro: subscriptionData.isPro,
+      isTrial: subscriptionData.isTrialActive,
+      createdAt: profileData.createdAt,
+      updatedAt: profileData.lastLoginAt,
+      subscription
     }
 
     // Cache the result

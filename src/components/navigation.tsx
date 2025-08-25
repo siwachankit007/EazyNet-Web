@@ -251,7 +251,7 @@ export function Navigation() {
           </Button>
 
           {/* Show Join Us button when not authenticated, or user dropdown when authenticated */}
-          {isAuthenticated && user ? (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2 ml-4">
@@ -384,7 +384,7 @@ export function Navigation() {
               </Button>
               
               {/* Show Join Us button when not authenticated, or user menu when authenticated */}
-              {isAuthenticated && user ? (
+              {user ? (
                 <div className="space-y-2">
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                     <User className="h-4 w-4" />
