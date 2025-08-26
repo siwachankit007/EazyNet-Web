@@ -276,7 +276,7 @@ class EazyNetAPI {
     if (!this.refreshToken) {
       return false
     }
-
+  
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/Auth/refresh`, {
         method: 'POST',
@@ -285,7 +285,7 @@ class EazyNetAPI {
         },
         body: JSON.stringify({ refreshToken: this.refreshToken })
       })
-
+  
       if (response.ok) {
         const data = await response.json()
         if (data.token && data.refreshToken) {
@@ -296,9 +296,9 @@ class EazyNetAPI {
     } catch (error) {
       log.error('Token refresh failed:', error)
     }
-
-    // Clear tokens if refresh failed
-    this.clearTokens()
+  
+    // Only clear all tokens if refresh completely fails
+    this.clearAllTokens() // Use clearAllTokens instead of clearTokens
     return false
   }
 
@@ -312,7 +312,7 @@ class EazyNetAPI {
     } catch (error) {
       log.error('Logout failed:', error)
     } finally {
-      this.clearTokens()
+      this.clearAllTokens() // Logout should clear everything
     }
   }
 
@@ -359,25 +359,45 @@ class EazyNetAPI {
       localStorage.setItem('eazynet_token', token)
       localStorage.setItem('eazynet_refresh_token', refreshToken)
       
-      // Also set cookie for server-side access
+      // Also set cookies for server-side access
       const expires = new Date()
       expires.setDate(expires.getDate() + 7)
       document.cookie = `eazynet_jwt_token=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
+      
+      // Set refresh token cookie for server-side token refresh
+      const refreshExpires = new Date()
+      refreshExpires.setDate(refreshExpires.getDate() + 30) // 30 days for refresh token
+      document.cookie = `eazynet_refresh_token=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Lax; HttpOnly`
     }
   }
 
-  private clearTokens() {
-    this.token = null
-    this.refreshToken = null
-    
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('eazynet_token')
-      localStorage.removeItem('eazynet_refresh_token')
-      
-      // Also clear the cookie
-      document.cookie = 'eazynet_jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-    }
+  // Clear only access token (keep refresh token for auto-refresh)
+private clearAccessToken() {
+  this.token = null
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('eazynet_token')
+    // Keep refresh token in localStorage
   }
+}
+
+// Clear everything (for logout, security issues, etc.)
+private clearAllTokens() {
+  this.token = null
+  this.refreshToken = null
+  
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('eazynet_token')
+    localStorage.removeItem('eazynet_refresh_token')
+    document.cookie = 'eazynet_jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    document.cookie = 'eazynet_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+  }
+}
+
+// Update the existing clearTokens method
+private clearTokens() {
+  // Only clear access token, keep refresh token for auto-refresh
+  this.clearAccessToken()
+}
 
   // Getters
   getToken(): string | null {
@@ -403,32 +423,32 @@ class EazyNetAPI {
   isAuthenticated(): boolean {
     if (!this.token) return false
     
-    // Validate token format before considering it valid
-    try {
-      const parts = this.token.split('.')
-      if (parts.length !== 3) {
-        log.warn('Invalid JWT format detected, clearing token')
-        this.clearTokens()
-        return false
-      }
+          // Validate token format before considering it valid
+      try {
+        const parts = this.token.split('.')
+        if (parts.length !== 3) {
+          log.warn('Invalid JWT format detected, clearing access token only')
+          this.clearTokens() // Keep refresh token for auto-refresh
+          return false
+        }
       
       // Check if token is expired (basic check)
       const payload = parts[1]
       if (payload) {
         const decoded = JSON.parse(atob(payload))
         if (decoded.exp && decoded.exp < Date.now() / 1000) {
-          log.warn('Token expired, clearing')
-          this.clearTokens()
+          log.warn('Token expired, clearing access token only')
+          this.clearTokens() // Keep refresh token for auto-refresh
           return false
         }
       }
       
       return true
-    } catch (error) {
-      log.warn('Token validation failed, clearing invalid token:', error)
-      this.clearTokens()
-      return false
-    }
+          } catch (error) {
+        log.warn('Token validation failed, clearing access token only:', error)
+        this.clearTokens() // Keep refresh token for auto-refresh
+        return false
+      }
   }
 
   // Get user data from token (basic JWT decode)
@@ -440,6 +460,7 @@ class EazyNetAPI {
       const parts = this.token.split('.')
       if (parts.length !== 3) {
         log.warn('Invalid JWT format: token does not have 3 parts')
+        this.clearTokens() // Keep refresh token for auto-refresh
         return null
       }
       
@@ -454,8 +475,8 @@ class EazyNetAPI {
       return decoded
     } catch (error) {
       log.error('Failed to decode token:', error)
-      // Clear the invalid token
-      this.clearTokens()
+      // Clear the invalid token but keep refresh token
+      this.clearTokens() // Keep refresh token for auto-refresh
       return null
     }
   }
