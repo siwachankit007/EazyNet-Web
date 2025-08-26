@@ -16,7 +16,7 @@ function decodeJWT(token: string) {
 // Function to fetch latest profile data from backend
 async function fetchLatestProfile(token: string) {
   try {
-    const apiBaseUrl = process.env.EAZYNET_API_URL || 'https://localhost:7061'
+    const apiBaseUrl = process.env.NEXT_PUBLIC_EAZYNET_API_URL || 'https://localhost:7061'
     
     // For development, use custom HTTPS agent for mkcert certificates
     if (process.env.NODE_ENV === 'development') {
@@ -139,6 +139,49 @@ export async function GET(request: NextRequest) {
       // Decode JWT token to get basic user info
       const tokenUser = decodeJWT(jwtToken)
       if (tokenUser) {
+        // Check if token is expired
+        const isExpired = tokenUser.exp && tokenUser.exp < Date.now() / 1000
+        let refreshToken = null
+        let tokenRefreshed = false
+        
+        if (isExpired) {
+          // Token is expired, try to refresh using the refresh token from cookies
+          const cookieHeader = request.headers.get('cookie')
+          
+          if (cookieHeader) {
+            const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+              const [key, value] = cookie.trim().split('=')
+              acc[key] = value
+              return acc
+            }, {} as Record<string, string>)
+            
+            refreshToken = cookies.eazynet_refresh_token
+          }
+          
+          if (refreshToken) {
+            try {
+              // Attempt to refresh the token
+              const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_EAZYNET_API_URL}/api/Auth/refresh`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken })
+              })
+              
+              if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json()
+                // Use the new token for profile fetch
+                jwtToken = refreshData.token
+                tokenUser.exp = refreshData.expiresAt ? new Date(refreshData.expiresAt).getTime() / 1000 : undefined
+                tokenRefreshed = true
+              }
+            } catch (error) {
+              console.error('Token refresh failed:', error)
+            }
+          }
+        }
+        
         // Fetch latest profile data from backend to get accurate isPro status
         const latestProfile = await fetchLatestProfile(jwtToken)
         
@@ -161,7 +204,8 @@ export async function GET(request: NextRequest) {
           },
           isPro: latestProfile ? latestProfile.isPro : false,
           authMethod: 'jwt',
-          profileSource: latestProfile ? 'backend' : 'jwt-fallback'
+          profileSource: latestProfile ? 'backend' : 'jwt-fallback',
+          tokenRefreshed
         })
 
         setCorsHeaders(response, origin, isChromeExtension)
