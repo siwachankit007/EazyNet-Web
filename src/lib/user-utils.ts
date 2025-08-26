@@ -1,6 +1,6 @@
 import { logUserData } from "@/lib/utils"
-import { eazynetAPI, type SubscriptionSummaryResponse } from "@/lib/eazynet-api"
-import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData, type UserData } from "@/lib/subscription-types"
+import { eazynetAPI } from "@/lib/eazynet-api"
+import { PlanType, SubscriptionUtils, type SubscriptionData, type UserData } from "@/lib/subscription-types"
 
 // Cache for user data to avoid excessive database calls
 const userDataCache = new Map<string, { data: UserData; timestamp: number }>()

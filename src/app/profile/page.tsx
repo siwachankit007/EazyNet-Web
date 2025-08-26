@@ -13,22 +13,12 @@ import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
+import { useUserData } from "@/lib/user-data-context"
 import { log } from "@/lib/utils"
 import { eazynetAPI } from "@/lib/eazynet-api"
-import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData } from "@/lib/subscription-types"
-import { Badge } from "@/components/ui/badge"
 
-// Local interface for profile page user data
-interface ProfileUserData {
-  id: string
-  email: string
-  name?: string
-  isPro: boolean
-  isTrial?: boolean
-  createdAt: string
-  updatedAt: string
-  subscription?: SubscriptionData
-}
+
+
 import {
   Dialog,
   DialogContent,
@@ -153,7 +143,7 @@ function PolicyModal({ isOpen, onClose, type }: {
 
 function ProfileContent() {
   const { user, fetchUserProfile } = useAuth()
-  const [userData, setUserData] = useState<ProfileUserData | null>(null)
+  const { userData, refreshUserData } = useUserData()
   const [isEditing, setIsEditing] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -182,62 +172,13 @@ function ProfileContent() {
     window.open('/help-documentation', '_blank')
   }
 
+  // Sync form fields with centralized user data
   useEffect(() => {
-    if (user) {
-      // All users now go through EazyNet backend
-      const fetchUserData = async () => {
-        try {
-          // Fetch both profile and subscription data
-          const [profileData, subscriptionData] = await Promise.all([
-            eazynetAPI.getProfile(),
-            eazynetAPI.getSubscription()
-          ])
-
-          // Convert backend subscription data to frontend format
-          const subscription: SubscriptionData = {
-            id: `sub_${user.id}`,
-            user_id: user.id,
-            plan_type: subscriptionData.isPro ? PlanType.Pro : PlanType.Free,
-            status: SubscriptionUtils.fromNumeric(subscriptionData.subscriptionStatus),
-            is_trial: subscriptionData.isTrialActive,
-            trial_ends_at: subscriptionData.trialEndsAt || undefined,
-            current_period_end: subscriptionData.subscriptionExpiresAt || undefined,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-
-          const userDataObj = {
-            id: profileData.id,
-            email: profileData.email,
-            name: profileData.name,
-            isPro: subscriptionData.isPro,
-            isTrial: subscriptionData.isTrialActive,
-            createdAt: profileData.createdAt,
-            updatedAt: profileData.lastLoginAt || profileData.createdAt,
-            subscription
-          }
-
-          setUserData(userDataObj)
-          setFullName(profileData.name)
-          setEmail(profileData.email)
-        } catch (error) {
-          console.error('Failed to fetch user data:', error)
-          // Fallback to user data if backend fetch fails
-          setUserData({
-            id: user.id,
-            email: user.email || '',
-            name: 'name' in user ? user.name : (user.user_metadata?.name as string || ''),
-            isPro: false, // Fallback value
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          })
-          setFullName('name' in user ? user.name : (user.user_metadata?.name as string || ''))
-          setEmail(user.email || '')
-        }
-      }
-      fetchUserData()
+    if (userData) {
+      setFullName(userData.name || '')
+      setEmail(userData.email || '')
     }
-  }, [user])
+  }, [userData])
 
   // Fetch user profile if not available
   useEffect(() => {
@@ -260,7 +201,8 @@ function ProfileContent() {
         toast.success("Profile updated successfully")
         setIsEditing(false)
         
-        // TODO: Update user data in auth context when updateAuthState is implemented
+        // Refresh centralized user data
+        await refreshUserData()
       } catch (error) {
         toast.error("Failed to update profile")
         log.error('Profile update exception:', error)
@@ -398,13 +340,12 @@ function ProfileContent() {
                       <p className="text-sm text-blue-700 mb-3">
                         Start your free 14-day trial and unlock all Pro features
                       </p>
-                      <TrialButton 
-                        variant="default" 
-                        size="sm"
-                        showSubscriptionStatus={true}
-                      >
-                        Start Free Trial
-                      </TrialButton>
+                                              <TrialButton 
+                          variant="default"
+                          size="sm"
+                        >
+                          Start Free Trial
+                        </TrialButton>
                     </div>
                   </div>
                 )}
@@ -527,13 +468,12 @@ function ProfileContent() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <TrialButton 
-                    variant="default" 
-                    className="w-full" 
-                    showSubscriptionStatus={true}
-                  >
-                    Start Free Trial
-                  </TrialButton>
+                                          <TrialButton
+                          variant="default"
+                          className="w-full"
+                        >
+                          Start Free Trial
+                        </TrialButton>
                 </CardContent>
               </Card>
             )}

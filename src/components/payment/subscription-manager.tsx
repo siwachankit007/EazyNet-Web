@@ -1,58 +1,18 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/lib/auth-context"
+
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { UpgradeButton } from "@/components/payment/upgrade-button"
-import { SubscriptionStatus, PlanType, SubscriptionUtils, type SubscriptionData } from "@/lib/subscription-types"
-import { eazynetAPI } from "@/lib/eazynet-api"
+import { SubscriptionStatus, SubscriptionUtils } from "@/lib/subscription-types"
+import { useUserData } from "@/lib/user-data-context"
 
 export function SubscriptionManager() {
-  const { user } = useAuth()
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { subscription, isLoading } = useUserData()
   const { withLoading } = useLoading()
-
-  const fetchSubscription = useCallback(async () => {
-    if (!user) return
-
-    try {
-      // Fetch subscription data from backend
-      const subscriptionResponse = await eazynetAPI.getSubscription()
-      
-      // Convert backend response to frontend format
-      const subscription: SubscriptionData = {
-        id: `sub_${user.id}`,
-        user_id: user.id,
-        plan_type: subscriptionResponse.isPro ? PlanType.Pro : PlanType.Free,
-        status: SubscriptionUtils.fromNumeric(subscriptionResponse.subscriptionStatus),
-        is_trial: subscriptionResponse.isTrialActive,
-        trial_ends_at: subscriptionResponse.trialEndsAt || undefined,
-        current_period_end: subscriptionResponse.subscriptionExpiresAt || undefined,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-      
-      setSubscription(subscription)
-    } catch (error) {
-      console.error('Error fetching subscription:', error)
-      setSubscription(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (user) {
-      fetchSubscription()
-    } else {
-      setIsLoading(false)
-    }
-  }, [user, fetchSubscription])
 
   const handleCancelSubscription = async () => {
     if (!subscription) return

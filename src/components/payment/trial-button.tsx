@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { eazynetAPI } from "@/lib/eazynet-api"
+import { useUserData } from "@/lib/user-data-context"
+import { SubscriptionStatus } from "@/lib/subscription-types"
 
 interface TrialButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link'
@@ -13,7 +15,6 @@ interface TrialButtonProps {
   className?: string
   children: React.ReactNode
   disabled?: boolean
-  showSubscriptionStatus?: boolean
 }
 
 export function TrialButton({
@@ -21,35 +22,30 @@ export function TrialButton({
   size = 'default',
   className = '',
   children,
-  disabled = false,
-  showSubscriptionStatus = false
+  disabled = false
 }: TrialButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [subscriptionStatus, setSubscriptionStatus] = useState<{
-    hasActiveSubscription: boolean
-    isTrialActive: boolean
-  } | null>(null)
   const { user } = useAuth()
+  const { subscription, refreshSubscription } = useUserData()
   const { withLoading } = useLoading()
 
-  // Check subscription status when component mounts
-  useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      if (!user || !showSubscriptionStatus) return
-      
-      try {
-        const subscription = await eazynetAPI.getSubscription()
-        setSubscriptionStatus({
-          hasActiveSubscription: subscription.hasActiveSubscription,
-          isTrialActive: subscription.isTrialActive
-        })
-      } catch (error) {
-        console.error('Error checking subscription status:', error)
-      }
-    }
+  // Get subscription status from centralized data
+  const subscriptionStatus = subscription ? {
+    hasActiveSubscription: subscription.status === SubscriptionStatus.Pro || subscription.status === SubscriptionStatus.Trial,
+    isTrialActive: subscription.status === SubscriptionStatus.Trial
+  } : null
 
-    checkSubscriptionStatus()
-  }, [user, showSubscriptionStatus])
+  // Determine if button should be disabled
+  const isDisabled = disabled || isLoading || 
+    (subscriptionStatus ? (subscriptionStatus.hasActiveSubscription || subscriptionStatus.isTrialActive) : false)
+
+  // Determine button text based on subscription status
+  const getButtonText = () => {
+    if (isLoading) return 'Loading...'
+    if (subscriptionStatus?.isTrialActive) return 'Trial Active'
+    if (subscriptionStatus?.hasActiveSubscription) return 'Already Pro'
+    return children
+  }
 
   const handleTrial = async () => {
     if (!user) {
@@ -67,9 +63,8 @@ export function TrialButton({
         // Show success message
         toast.success(`Trial started successfully! You now have Pro access until ${updatedUser.trialEndsAt ? new Date(updatedUser.trialEndsAt).toLocaleDateString() : 'the trial ends'}`)
         
-        // Refresh the page to show updated subscription status
-        // This is a simple approach - in a more sophisticated app, you might update the auth context
-        window.location.reload()
+        // Refresh centralized user data to show updated subscription status
+        await refreshSubscription()
         
       } catch (error) {
         console.error('Error starting trial:', error)
@@ -90,18 +85,6 @@ export function TrialButton({
         setIsLoading(false)
       }
     })
-  }
-
-  // Determine if button should be disabled
-  const isDisabled = disabled || isLoading || 
-    (subscriptionStatus ? (subscriptionStatus.hasActiveSubscription || subscriptionStatus.isTrialActive) : false)
-
-  // Determine button text based on subscription status
-  const getButtonText = () => {
-    if (isLoading) return 'Loading...'
-    if (subscriptionStatus?.isTrialActive) return 'Trial Active'
-    if (subscriptionStatus?.hasActiveSubscription) return 'Already Pro'
-    return children
   }
 
   return (
