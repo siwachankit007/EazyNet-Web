@@ -120,7 +120,7 @@ function DashboardContent() {
           </div>
           
           <div className="flex gap-3">
-            <TrialButton variant="secondary" showSubscriptionStatus={true}>
+            <TrialButton variant="secondary">
               Start Free Trial
             </TrialButton>
             <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">

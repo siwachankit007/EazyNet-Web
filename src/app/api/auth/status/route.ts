@@ -46,7 +46,7 @@ async function fetchLatestProfile(token: string) {
               try {
                 const profileData = JSON.parse(data)
                 resolve(profileData)
-              } catch (e) {
+              } catch {
                 reject(new Error('Invalid JSON response'))
               }
             } else {
