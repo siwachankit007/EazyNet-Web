@@ -23,7 +23,11 @@ export function RouteGuard({
   // Redirect authenticated users away from guest-only pages (like auth page)
   useEffect(() => {
     if (!isLoading && requireGuest && isAuthenticated) {
-      router.push('/dashboard')
+      // Check if we're in a password reset flow - don't redirect if we are
+      const isPasswordResetFlow = localStorage.getItem('isPasswordResetFlow') === 'true'
+      if (!isPasswordResetFlow) {
+        router.push('/dashboard')
+      }
     }
   }, [isLoading, requireGuest, isAuthenticated, router])
 

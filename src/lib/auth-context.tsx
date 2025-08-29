@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { eazynetAPI, type JwtPayload } from '@/lib/eazynet-api'
+import { eazynetAPI } from '@/lib/eazynet-api'
 import { createClient } from '@/lib/supabase/client'
 import { useLoading } from '@/components/loading-context'
 import { log } from '@/lib/utils'
@@ -14,6 +14,14 @@ interface EazyNetUser {
   email: string
   name: string
   isPro?: boolean
+  isInterestedInPro?: boolean
+  isTrial?: boolean
+  trialEndsAt?: string | null
+  subscriptionStatus?: number
+  upgradedFromTrial?: boolean
+  permanentProSince?: string | null
+  createdAt?: string
+  lastLoginAt?: string
 }
 
 interface EazyNetSession {
@@ -55,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<AuthSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasCompleteUserData, setHasCompleteUserData] = useState(false)
   const isRedirectingRef = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -95,6 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Always check auth state for all routes, but only redirect for protected/auth routes
         
+        // If we already have complete user data, don't override it
+        if (hasCompleteUserData && user && 'isPro' in user && user.isPro !== undefined) {
+          console.log('AuthContext: Skipping getInitialSession - already have complete user data')
+          setIsLoading(false)
+          return
+        }
+        
         // Check if user is authenticated via EazyNet backend
         // First refresh token state from localStorage to ensure we have the latest
         eazynetAPI.refreshTokenState()
@@ -103,49 +119,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (eazynetAuthStatus) {
           const tokenUser = eazynetAPI.getUserFromToken()
           if (tokenUser) {
-            // Create temporary user data from token (will be updated with fresh data)
-            const tempUserData: EazyNetUser = {
-              id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
-              email: (tokenUser.email as string) || '',
-              name: (tokenUser.name as string) || 'User',
-              isPro: Boolean((tokenUser as JwtPayload).isPro) || false
-            }
-            
-            const sessionData: EazyNetSession = {
-              token: eazynetAPI.getToken()!,
-              refreshToken: eazynetAPI.getRefreshToken()!,
-              user: tempUserData
-            }
-            
-
-
-            setSession(sessionData)
-            setUser(tempUserData)
-            setIsLoading(false)
-
-            // Fetch fresh profile data from backend
-            try {
-              const profileData = await eazynetAPI.getProfile()
-              if (profileData && profileData.name !== 'User') {
-                              const freshUserData: EazyNetUser = {
-                id: profileData.id,
-                email: profileData.email,
-                name: profileData.name,
-                isPro: profileData.isPro
+            // Check if we already have complete user data from a previous login
+            // Don't override it with incomplete token data
+            if (hasCompleteUserData && user && 'isPro' in user && user.isPro !== undefined) {
+              console.log('AuthContext: Preserving existing complete user data')
+              // We already have complete user data, just set the session
+              const sessionData: EazyNetSession = {
+                token: eazynetAPI.getToken()!,
+                refreshToken: eazynetAPI.getRefreshToken()!,
+                user: user
               }
-                setUser(freshUserData)
-                
-                // Update session with fresh user data
-                const updatedSessionData: EazyNetSession = {
-                  ...sessionData,
-                  user: freshUserData
-                }
-                setSession(updatedSessionData)
+              setSession(sessionData)
+              setIsLoading(false)
+            } else {
+              console.log('AuthContext: Creating temporary user data from token')
+              // Create temporary user data from token (will be updated with fresh data)
+              // Note: JWT token might not contain isPro, so we'll fetch fresh data
+              const tempUserData: EazyNetUser = {
+                id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
+                email: (tokenUser.email as string) || '',
+                name: (tokenUser.name as string) || 'User',
+                isPro: false // Default to false, will be updated with fresh data
               }
-            } catch (error) {
-              console.error('Error fetching fresh profile data:', error)
-              // Keep using token data if profile fetch fails
+              
+              const sessionData: EazyNetSession = {
+                token: eazynetAPI.getToken()!,
+                refreshToken: eazynetAPI.getRefreshToken()!,
+                user: tempUserData
+              }
+              
+              console.log('AuthContext: Setting temporary user data:', tempUserData)
+              setSession(sessionData)
+              setUser(tempUserData)
+              setIsLoading(false)
             }
+
+            // Note: We already have complete user data from the login response
+            // No need to make additional API calls here
+            // The user data will be properly set when updateAuthState is called from the auth form
 
             // Handle initial redirect based on session (only for protected/auth routes)
             if (isAuthRoute) {
@@ -202,6 +213,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supabaseSession) => {
       if (!isMounted) return
 
+      // Skip OAuth processing if we're in a password reset flow
+      const isPasswordResetSession = localStorage.getItem('isPasswordResetSession') === 'true'
+      if (isPasswordResetSession) {
+        console.log('Skipping OAuth processing during password reset')
+        return
+      }
 
       
       if (supabaseSession?.user && event === 'SIGNED_IN') {
@@ -278,12 +295,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth])
+  }, [handleRedirect, pathname, requiresAuthCheck, isProtectedRoute, isAuthRoute, supabase.auth, hasCompleteUserData])
 
   const updateAuthState = useCallback((user: EazyNetUser | null, session: EazyNetSession) => {
-
     setUser(user)
     setSession(session)
+    
+    // Mark that we have complete user data from login response
+    if (user && 'isPro' in user && user.isPro !== undefined) {
+      setHasCompleteUserData(true)
+    }
     
     // If user is on auth page and successfully authenticated, redirect to dashboard
     if (isAuthRoute) {
@@ -333,11 +354,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error fetching user profile:', error)
       // Only redirect to auth page on error if we're not already signing out
-      if (user || session) {
+      if (session) {
         handleRedirect('/auth')
       }
     }
-  }, [handleRedirect, user, session])
+  }, [handleRedirect, session])
 
   const signOut = useCallback(async () => {
     try {

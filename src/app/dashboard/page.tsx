@@ -57,12 +57,20 @@ function DashboardContent() {
     checkExtensionStatus()
   }, [])
 
-  // Fetch user profile when component mounts
+  // Only fetch profile if user data is incomplete
   useEffect(() => {
     if (!user) {
       fetchUserProfile()
+    } else if ('isPro' in user && user.isPro === undefined) {
+      // Only fetch if isPro is undefined (incomplete data)
+      fetchUserProfile()
     }
-  }, [user, fetchUserProfile])
+  }, [fetchUserProfile, user])
+
+  // Only fetch subscription data if we don't already have it
+  useEffect(() => {
+    // User has complete data, no need to fetch subscription separately
+  }, [user])
 
   const openExtension = () => {
     // Try to communicate with extension via chrome.runtime.sendMessage

@@ -11,6 +11,7 @@ import { logUserData } from "@/lib/utils"
 import { eazynetAPI } from "@/lib/eazynet-api"
 import { useAuth } from "@/lib/auth-context"
 import { createClient } from "@/lib/supabase/client"
+import { ForgotPasswordForm } from "@/components/forgot-password-form"
 
 // Helper function for conditional logging
 const log = (message: string, data?: unknown) => {
@@ -22,6 +23,7 @@ const log = (message: string, data?: unknown) => {
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: "",
@@ -86,7 +88,16 @@ export function AuthForm() {
               const userData = {
                 id: response.user.id,
                 email: response.user.email,
-                name: response.user.name
+                name: response.user.name,
+                isPro: response.user.isPro,
+                isInterestedInPro: response.user.isInterestedInPro,
+                isTrial: response.user.isTrial,
+                trialEndsAt: response.user.trialEndsAt,
+                subscriptionStatus: response.user.subscriptionStatus,
+                upgradedFromTrial: response.user.upgradedFromTrial,
+                permanentProSince: response.user.permanentProSince,
+                createdAt: response.user.createdAt,
+                lastLoginAt: response.user.lastLoginAt
               }
               
               const sessionData = {
@@ -109,6 +120,7 @@ export function AuthForm() {
             }
             
             toast.success("Login successful!")
+            setShowForgotPassword(false) // Hide forgot password form
             // Auth context will handle the redirect automatically
           }
         } catch (error) {
@@ -140,7 +152,16 @@ export function AuthForm() {
               const userData = {
                 id: response.user.id,
                 email: response.user.email,
-                name: response.user.name
+                name: response.user.name,
+                isPro: response.user.isPro,
+                isInterestedInPro: response.user.isInterestedInPro,
+                isTrial: response.user.isTrial,
+                trialEndsAt: response.user.trialEndsAt,
+                subscriptionStatus: response.user.subscriptionStatus,
+                upgradedFromTrial: response.user.upgradedFromTrial,
+                permanentProSince: response.user.permanentProSince,
+                createdAt: response.user.createdAt,
+                lastLoginAt: response.user.lastLoginAt
               }
               
               logUserData('AuthForm', userData, { action: 'Signup Successful', hasSession: true })
@@ -162,6 +183,7 @@ export function AuthForm() {
             }
             
             toast.success("Account created successfully!")
+            setShowForgotPassword(false) // Hide forgot password form
             setIsLogin(true)
           }
         } catch (error) {
@@ -211,6 +233,17 @@ export function AuthForm() {
     })
   }
 
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordForm 
+        onBack={() => {
+          setShowForgotPassword(false)
+          setValidationError(null)
+        }} 
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Validation Error Display */}
@@ -238,6 +271,7 @@ export function AuthForm() {
           onClick={() => {
             setIsLogin(true)
             setValidationError(null) // Clear errors when switching to login
+            setShowForgotPassword(false) // Hide forgot password form
           }}
           suppressHydrationWarning
         >
@@ -250,6 +284,7 @@ export function AuthForm() {
           onClick={() => {
             setIsLogin(false)
             setValidationError(null) // Clear errors when switching to signup
+            setShowForgotPassword(false) // Hide forgot password form
           }}
           suppressHydrationWarning
         >
@@ -400,8 +435,7 @@ export function AuthForm() {
             className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
             onClick={(e) => {
               e.preventDefault()
-              // Add forgot password functionality
-              toast.info("Forgot password functionality coming soon!")
+              setShowForgotPassword(true)
             }}
           >
             Forgot your password?

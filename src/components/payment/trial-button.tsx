@@ -29,11 +29,21 @@ export function TrialButton({
   const { subscription, refreshSubscription } = useUserData()
   const { withLoading } = useLoading()
 
-  // Get subscription status from centralized data
-  const subscriptionStatus = subscription ? {
-    hasActiveSubscription: subscription.status === SubscriptionStatus.Pro || subscription.status === SubscriptionStatus.Trial,
-    isTrialActive: subscription.status === SubscriptionStatus.Trial
-  } : null
+  // Get subscription status from user data or centralized data
+  const subscriptionStatus = (() => {
+    // First try to get from user data (from login response)
+    if (user && 'isPro' in user && user.isPro !== undefined) {
+      return {
+        hasActiveSubscription: user.isPro || user.isTrial,
+        isTrialActive: user.isTrial || false
+      }
+    }
+    // Fallback to centralized subscription data
+    return subscription ? {
+      hasActiveSubscription: subscription.status === SubscriptionStatus.Pro || subscription.status === SubscriptionStatus.Trial,
+      isTrialActive: subscription.status === SubscriptionStatus.Trial
+    } : null
+  })()
 
   // Determine if button should be disabled
   const isDisabled = disabled || isLoading || 
@@ -42,8 +52,17 @@ export function TrialButton({
   // Determine button text based on subscription status
   const getButtonText = () => {
     if (isLoading) return 'Loading...'
+    
+    // Use user data directly if available
+    if (user && 'isPro' in user && user.isPro !== undefined) {
+      if (user.isTrial) return 'Trial Active'
+      if (user.isPro) return 'Already Pro'
+    }
+    
+    // Fallback to subscription status
     if (subscriptionStatus?.isTrialActive) return 'Trial Active'
     if (subscriptionStatus?.hasActiveSubscription) return 'Already Pro'
+    
     return children
   }
 

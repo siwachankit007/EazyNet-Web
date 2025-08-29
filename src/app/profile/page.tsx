@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -156,9 +156,59 @@ function ProfileContent() {
     type: null
   })
 
+  const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const { withLoading } = useLoading()
+
+  // Check if user is OAuth user (Google login)
+  const isOAuthUser = useMemo(() => {
+    if (!user) {
+      return false
+    }
+    
+    // For Supabase OAuth users, check app_metadata
+    if ('app_metadata' in user && user.app_metadata?.provider === 'google') {
+      return true
+    }
+    
+    // For EazyNet users, check if they have a token and analyze it
+    if (eazynetAPI.getToken()) {
+      try {
+        const token = eazynetAPI.getToken()!
+        const parts = token.split('.')
+        if (parts.length === 3) {
+          const payload = parts[1]
+          const decoded = JSON.parse(atob(payload))
+          
+          // Check if this is a Supabase JWT (OAuth users)
+          if (decoded.iss && decoded.iss.includes('supabase.co')) {
+            return true
+          }
+          
+          // Check app_metadata.provider for OAuth indicators
+          if (decoded.app_metadata?.provider) {
+            const isOAuth = decoded.app_metadata.provider !== 'email'
+            return isOAuth
+          }
+          
+          // If we have amr but no provider info, check the authentication methods
+          // OAuth users typically don't have password method in amr
+          if (decoded.amr && Array.isArray(decoded.amr)) {
+            const hasPasswordMethod = decoded.amr.some((method: { method: string }) => method.method === 'password')
+            // If amr contains password method, it's likely a normal user (NOT OAuth)
+            // But this is not 100% reliable, so we'll use it as a fallback
+            return !hasPasswordMethod
+          }
+        }
+      } catch (error) {
+        console.error('Error checking OAuth status:', error)
+      }
+    }
+    
+    // Default to false (assume email/password user)
+    return false
+  }, [user])
 
   const openModal = (type: 'privacy' | 'terms') => {
     setModalState({ isOpen: true, type });
@@ -257,9 +307,15 @@ function ProfileContent() {
 
     await withLoading('change-password', async () => {
       try {
-        // TODO: Implement password change endpoint in EazyNet backend
-        toast.info("Password change functionality coming soon in EazyNet backend!")
+        await eazynetAPI.changePassword({
+          currentPassword,
+          newPassword,
+          confirmNewPassword: confirmPassword
+        })
+
+        toast.success("Password changed successfully")
         setIsPasswordDialogOpen(false)
+        setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
       } catch (error) {
@@ -378,6 +434,7 @@ function ProfileContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                
                 {/* <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                   <div>
                     <p className="font-medium text-green-900">Two-Factor Authentication</p>
@@ -388,67 +445,93 @@ function ProfileContent() {
                   </Button>
                 </div> */}
                 
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-blue-900">Change Password</p>
-                    <p className="text-sm text-blue-700">Update your account password</p>
+                {!isOAuthUser && (
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-blue-900">Change Password</p>
+                      <p className="text-sm text-blue-700">Update your account password</p>
+                    </div>
+                    <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Change Password
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Change Password</DialogTitle>
+                          <DialogDescription>
+                            Enter your current password and new password below. Password must be at least 8 characters with one letter, one number, and one special character.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="currentPassword">Current Password</Label>
+                            <Input
+                              id="currentPassword"
+                              type="password"
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              placeholder="Enter current password"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="newPassword">New Password</Label>
+                            <Input
+                              id="newPassword"
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Enter new password"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                            <Input
+                              id="confirmPassword"
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm new password"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div className="flex gap-3 pt-4">
+                            <Button onClick={handleChangePassword} className="flex-1">
+                              Change Password
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsPasswordDialogOpen(false)
+                                setCurrentPassword("")
+                                setNewPassword("")
+                                setConfirmPassword("")
+                              }}
+                              className="flex-1"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Change Password
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Change Password</DialogTitle>
-                        <DialogDescription>
-                          Enter your new password below. Password must be at least 8 characters with one letter, one number, and one special character.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Enter new password"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm new password"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div className="flex gap-3 pt-4">
-                          <Button onClick={handleChangePassword} className="flex-1">
-                            Change Password
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              setIsPasswordDialogOpen(false)
-                              setNewPassword("")
-                              setConfirmPassword("")
-                            }}
-                            className="flex-1"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                )}
+
+                {isOAuthUser && (
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900">Password Management</p>
+                      <p className="text-sm text-gray-700">Your account is managed through Google OAuth</p>
+                    </div>
+                    <Button variant="outline" size="sm" disabled>
+                      Change Password
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
