@@ -8,7 +8,7 @@ const getApiBaseUrl = () => {
   if (!API_BASE_URL) {
     // Development fallback for local testing
     if (process.env.NODE_ENV === 'development') {
-      log.warn('Using development fallback URL: https://localhost:7061')
+      log.warn('NEXT_PUBLIC_EAZYNET_API_URL environment variable is required for production')
       return 'https://localhost:7061'
     }
     throw new Error('NEXT_PUBLIC_EAZYNET_API_URL environment variable is required')
@@ -37,6 +37,12 @@ interface AuthResponse {
     email: string
     name: string
     isPro: boolean
+    isInterestedInPro: boolean
+    isTrial: boolean
+    trialEndsAt: string | null
+    subscriptionStatus: number
+    upgradedFromTrial: boolean
+    permanentProSince: string | null
     createdAt: string
     lastLoginAt: string
   }
@@ -89,6 +95,18 @@ interface ProfileUpdateRequest {
   fullname?: string
   email?: string
 }
+
+interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmNewPassword: string
+}
+
+interface ForgotPasswordResponse {
+  message: string
+}
+
+
 
 interface JwtPayload {
   sub?: string
@@ -329,6 +347,22 @@ class EazyNetAPI {
     })
   }
 
+  async changePassword(passwordData: ChangePasswordRequest): Promise<UserDto> {
+    return await this.makeRequest<UserDto>('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(passwordData)
+    })
+  }
+
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    return await this.makeRequest<ForgotPasswordResponse>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    })
+  }
+
+
+
   async getSubscription(): Promise<SubscriptionSummaryResponse> {
     const response = await this.makeRequest<SubscriptionSummaryResponse>('/api/User/subscription')
     return response
@@ -367,7 +401,9 @@ class EazyNetAPI {
       // Set refresh token cookie for server-side token refresh
       const refreshExpires = new Date()
       refreshExpires.setDate(refreshExpires.getDate() + 30) // 30 days for refresh token
-      document.cookie = `eazynet_refresh_token=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Lax; HttpOnly`
+      const refreshCookie = `eazynet_refresh_token=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Lax`
+      document.cookie = refreshCookie
+      console.log('Set refresh token cookie:', refreshCookie.substring(0, 50) + '...')
     }
   }
 
@@ -492,6 +528,7 @@ export type {
   AuthResponse,
   ProfileResponse,
   ProfileUpdateRequest,
+  ChangePasswordRequest,
   SubscriptionSummaryResponse,
   StartTrialRequest,
   UserDto,

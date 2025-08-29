@@ -9,6 +9,7 @@ import { ScrollToTop } from "@/components/scroll-to-top"
 import { LoadingProvider } from "@/components/loading-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { UserDataProvider } from "@/lib/user-data-context"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -124,19 +125,21 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased`}
       >
-        <LoadingProvider>
-          <AuthProvider>
-            <UserDataProvider>
-              <ScrollProgress />
-              <AOSInit />
-              <div className="page-transition-enter page-transition-enter-active">
-                {children}
-              </div>
-              <ScrollToTop />
-              <Toaster position="top-center" />
-            </UserDataProvider>
-          </AuthProvider>
-        </LoadingProvider>
+        <ErrorBoundary>
+          <LoadingProvider>
+            <AuthProvider>
+              <UserDataProvider>
+                <ScrollProgress />
+                <AOSInit />
+                <div className="page-transition-enter page-transition-enter-active">
+                  {children}
+                </div>
+                <ScrollToTop />
+                <Toaster position="top-center" />
+              </UserDataProvider>
+            </AuthProvider>
+          </LoadingProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
