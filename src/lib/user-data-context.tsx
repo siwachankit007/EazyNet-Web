@@ -102,6 +102,19 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       if (profileData && subscriptionData) {
         const convertedSubscription = convertSubscriptionData(subscriptionData, profileData.id)
         
+        // Determine auth method from stored value or default to email
+        // Note: JWT issuer check is unreliable since both OAuth and normal users use Supabase
+        let authMethod: 'email' | 'oauth' = 'email'
+        
+        // Try to get auth method from localStorage (set during login)
+        const storedAuthMethod = localStorage.getItem('userAuthMethod')
+        if (storedAuthMethod === 'oauth' || storedAuthMethod === 'email') {
+          authMethod = storedAuthMethod
+        }
+        
+        // TODO: Backend should include authMethod in profile/subscription responses
+        // For now, we'll use the stored value from login
+        
         const newUserData: UserData = {
           id: profileData.id,
           email: profileData.email,
@@ -110,7 +123,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           isTrial: subscriptionData.isTrialActive,
           createdAt: profileData.createdAt,
           updatedAt: profileData.lastLoginAt || profileData.createdAt,
-          subscription: convertedSubscription
+          subscription: convertedSubscription,
+          authMethod: authMethod // Set auth method based on JWT token issuer
         }
 
         setUserData(newUserData)

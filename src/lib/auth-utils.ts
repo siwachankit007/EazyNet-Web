@@ -27,9 +27,11 @@ export function isOAuthUser(token: string): boolean {
     const decoded = JSON.parse(atob(payload))
     
     // Check if user has authentication methods (amr) that don't include password
+    // This check is unreliable and causing false positives, so we'll skip it for now
+    // Only mark as OAuth if we have explicit provider info
     if (decoded.amr && Array.isArray(decoded.amr)) {
-      // If amr doesn't contain 'pwd' (password), it's likely an OAuth user
-      return !decoded.amr.some((method: { method: string }) => method.method === 'password')
+      // For now, let's be conservative and not rely on amr checks
+      // return !decoded.amr.some((method: { method: string }) => method.method === 'password')
     }
     
     // Check app_metadata.provider for OAuth indicators

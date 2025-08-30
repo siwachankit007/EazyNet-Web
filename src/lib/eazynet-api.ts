@@ -45,6 +45,7 @@ interface AuthResponse {
     permanentProSince: string | null
     createdAt: string
     lastLoginAt: string
+    authMethod: 'email' | 'oauth' // Add auth method flag
   }
 }
 
@@ -89,6 +90,7 @@ interface UserDto {
   permanentProSince: string | null
   createdAt: string
   lastLoginAt: string | null
+  authMethod: 'email' | 'oauth' // Add auth method flag
 }
 
 interface ProfileUpdateRequest {
