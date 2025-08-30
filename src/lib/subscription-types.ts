@@ -62,6 +62,7 @@ export interface UserData {
   updatedAt: string
   user_metadata?: Record<string, unknown>
   subscription?: SubscriptionData
+  authMethod?: 'email' | 'oauth' // Add auth method flag
 }
 
 /**

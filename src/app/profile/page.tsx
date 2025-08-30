@@ -17,8 +17,6 @@ import { useUserData } from "@/lib/user-data-context"
 import { log } from "@/lib/utils"
 import { eazynetAPI } from "@/lib/eazynet-api"
 
-
-
 import {
   Dialog,
   DialogContent,
@@ -161,54 +159,38 @@ function ProfileContent() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const { withLoading } = useLoading()
 
-  // Check if user is OAuth user (Google login)
+  // Check if user is OAuth user using the authMethod from user data context
   const isOAuthUser = useMemo(() => {
-    if (!user) {
-      return false
+    // Use userData from user data context (has proper authMethod)
+    if (userData?.authMethod) {
+      return userData.authMethod === 'oauth'
     }
     
-    // For Supabase OAuth users, check app_metadata
-    if ('app_metadata' in user && user.app_metadata?.provider === 'google') {
-      return true
-    }
-    
-    // For EazyNet users, check if they have a token and analyze it
-    if (eazynetAPI.getToken()) {
-      try {
-        const token = eazynetAPI.getToken()!
-        const parts = token.split('.')
-        if (parts.length === 3) {
-          const payload = parts[1]
-          const decoded = JSON.parse(atob(payload))
-          
-          // Check if this is a Supabase JWT (OAuth users)
-          if (decoded.iss && decoded.iss.includes('supabase.co')) {
-            return true
-          }
-          
-          // Check app_metadata.provider for OAuth indicators
-          if (decoded.app_metadata?.provider) {
-            const isOAuth = decoded.app_metadata.provider !== 'email'
-            return isOAuth
-          }
-          
-          // If we have amr but no provider info, check the authentication methods
-          // OAuth users typically don't have password method in amr
-          if (decoded.amr && Array.isArray(decoded.amr)) {
-            const hasPasswordMethod = decoded.amr.some((method: { method: string }) => method.method === 'password')
-            // If amr contains password method, it's likely a normal user (NOT OAuth)
-            // But this is not 100% reliable, so we'll use it as a fallback
-            return !hasPasswordMethod
-          }
+    // Fallback: Check auth context user
+    if (user) {
+      // Use the simple authMethod flag if available (only for EazyNetUser)
+      if ('authMethod' in user) {
+        const eazyNetUser = user as { authMethod?: string }
+        if (eazyNetUser.authMethod) {
+          return eazyNetUser.authMethod === 'oauth'
         }
-      } catch (error) {
-        console.error('Error checking OAuth status:', error)
       }
+      
+      // Fallback: For Supabase OAuth users, check app_metadata
+      if ('app_metadata' in user && user.app_metadata?.provider === 'google') {
+        return true
+      }
+    }
+    
+    // Check localStorage as final fallback
+    const localStorageAuthMethod = localStorage.getItem('userAuthMethod')
+    if (localStorageAuthMethod === 'oauth' || localStorageAuthMethod === 'email') {
+      return localStorageAuthMethod === 'oauth'
     }
     
     // Default to false (assume email/password user)
     return false
-  }, [user])
+  }, [userData, user])
 
   const openModal = (type: 'privacy' | 'terms') => {
     setModalState({ isOpen: true, type });
@@ -551,12 +533,12 @@ function ProfileContent() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                                          <TrialButton
-                          variant="default"
-                          className="w-full"
-                        >
-                          Start Free Trial
-                        </TrialButton>
+                  <TrialButton
+                    variant="default"
+                    className="w-full"
+                  >
+                    Start Free Trial
+                  </TrialButton>
                 </CardContent>
               </Card>
             )}
@@ -587,28 +569,28 @@ function ProfileContent() {
           
 
                          {/* Quick Actions */}
-             <Card>
-               <CardHeader>
-                 <CardTitle>Quick Actions</CardTitle>
-               </CardHeader>
-               <CardContent className="space-y-3">
-                 <Button variant="ghost" className="w-full justify-start" asChild>
-                   <a href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc" target="_blank" rel="noopener noreferrer">
-                     View Extension
-                   </a>
-                 </Button>
-                 <Button variant="ghost" className="w-full justify-start" onClick={openHelpSupport}>
-                   Help & Support
-                 </Button>
-                
-                 <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('privacy')}>
-                   Privacy Policy
-                 </Button>
-                 <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('terms')}>
-                   Terms of Service
-                 </Button>
-               </CardContent>
-             </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc" target="_blank" rel="noopener noreferrer">
+                    View Extension
+                  </a>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={openHelpSupport}>
+                  Help & Support
+                </Button>
+               
+                <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('privacy')}>
+                  Privacy Policy
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('terms')}>
+                  Terms of Service
+                </Button>
+              </CardContent>
+            </Card>
 
           
             {/* Danger Zone */}

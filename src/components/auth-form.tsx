@@ -97,8 +97,12 @@ export function AuthForm() {
                 upgradedFromTrial: response.user.upgradedFromTrial,
                 permanentProSince: response.user.permanentProSince,
                 createdAt: response.user.createdAt,
-                lastLoginAt: response.user.lastLoginAt
+                lastLoginAt: response.user.lastLoginAt,
+                authMethod: response.user.authMethod || 'email' // Set auth method, default to email
               }
+              
+              // Store auth method in localStorage for persistence across page refreshes
+              localStorage.setItem('userAuthMethod', userData.authMethod)
               
               const sessionData = {
                 token: response.token,
@@ -149,22 +153,26 @@ export function AuthForm() {
           if (response.token) {
             // For signup, we might get user data immediately, or we can fetch it later
             if (response.user) {
-              const userData = {
-                id: response.user.id,
-                email: response.user.email,
-                name: response.user.name,
-                isPro: response.user.isPro,
-                isInterestedInPro: response.user.isInterestedInPro,
-                isTrial: response.user.isTrial,
-                trialEndsAt: response.user.trialEndsAt,
-                subscriptionStatus: response.user.subscriptionStatus,
-                upgradedFromTrial: response.user.upgradedFromTrial,
-                permanentProSince: response.user.permanentProSince,
-                createdAt: response.user.createdAt,
-                lastLoginAt: response.user.lastLoginAt
-              }
-              
-              logUserData('AuthForm', userData, { action: 'Signup Successful', hasSession: true })
+                             const userData = {
+                 id: response.user.id,
+                 email: response.user.email,
+                 name: response.user.name,
+                 isPro: response.user.isPro,
+                 isInterestedInPro: response.user.isInterestedInPro,
+                 isTrial: response.user.isTrial,
+                 trialEndsAt: response.user.trialEndsAt,
+                 subscriptionStatus: response.user.subscriptionStatus,
+                 upgradedFromTrial: response.user.upgradedFromTrial,
+                 permanentProSince: response.user.permanentProSince,
+                 createdAt: response.user.createdAt,
+                 lastLoginAt: response.user.lastLoginAt,
+                 authMethod: response.user.authMethod || 'email' // Set auth method, default to email
+               }
+               
+               // Store auth method in localStorage for persistence across page refreshes
+               localStorage.setItem('userAuthMethod', userData.authMethod)
+               
+               logUserData('AuthForm', userData, { action: 'Signup Successful', hasSession: true })
               
               const sessionData = {
                 token: response.token,

@@ -22,6 +22,7 @@ interface EazyNetUser {
   permanentProSince?: string | null
   createdAt?: string
   lastLoginAt?: string
+  authMethod?: 'email' | 'oauth' // Add auth method flag
 }
 
 interface EazyNetSession {
@@ -132,25 +133,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setSession(sessionData)
               setIsLoading(false)
             } else {
-              console.log('AuthContext: Creating temporary user data from token')
-              // Create temporary user data from token (will be updated with fresh data)
-              // Note: JWT token might not contain isPro, so we'll fetch fresh data
-              const tempUserData: EazyNetUser = {
-                id: (tokenUser.sub as string) || (tokenUser.id as string) || '',
-                email: (tokenUser.email as string) || '',
-                name: (tokenUser.name as string) || 'User',
-                isPro: false // Default to false, will be updated with fresh data
-              }
+              // Instead of creating temporary user data, let the user data context handle this
+              // This prevents unnecessary temporary data creation and API calls
+              console.log('AuthContext: Skipping temporary user creation - letting user data context handle this')
               
+              // Just set the session with the token, no user data
               const sessionData: EazyNetSession = {
                 token: eazynetAPI.getToken()!,
                 refreshToken: eazynetAPI.getRefreshToken()!,
-                user: tempUserData
+                user: null // Let user data context fetch fresh data
               }
               
-              console.log('AuthContext: Setting temporary user data:', tempUserData)
               setSession(sessionData)
-              setUser(tempUserData)
+              setUser(null) // Clear user data to force fresh fetch
               setIsLoading(false)
             }
 
@@ -238,8 +233,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: authResponse.user.id,
             email: authResponse.user.email,
             name: authResponse.user.name,
-            isPro: authResponse.user.isPro
+            isPro: authResponse.user.isPro,
+            authMethod: 'oauth' // Set auth method for OAuth users
           }
+          
+          // Store auth method in localStorage for persistence across page refreshes
+          localStorage.setItem('userAuthMethod', 'oauth')
 
           // Create unified session
           const unifiedSession: EazyNetSession = {
@@ -381,6 +380,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear local state
       setUser(null)
       setSession(null)
+      
+      // Clear localStorage auth method
+      localStorage.removeItem('userAuthMethod')
       
       // Always redirect to auth page after sign out, regardless of current route
       handleRedirect('/auth')
