@@ -11,24 +11,39 @@ import 'swiper/css/navigation'
 
 const features = [
   {
-    image: "/images/SearchTabs.png",
+    image: "/images/SearchTabs.png?v=20241201",
     title: "🔍 Smart Tab Search",
     description: "Instantly search across all tabs, windows, and groups — no matter where they're hiding."
   },
   {
-    image: "/images/Grouped Tabs.png",
+    image: "/images/Grouped Tabs.png?v=20241201",
     title: "📂 Auto Grouping",
     description: "Tabs are smartly grouped by domain or usage patterns."
   },
   {
-    image: "/images/UpdateDomainMapping.png",
+    image: "/images/UpdateDomainMapping.png?v=20241201",
     title: "⬆️ Update Domain Mapping",
     description: "So that you can have customized names for tab groups"
   },
   {
-    image: "/images/SearchTabGroups.png",
+    image: "/images/SearchTabGroups.png?v=20241201",
     title: "🔍 Search Tab Groups",
     description: "Find any tab group and switch to any tab in real time"
+  },
+  {
+    image: "/images/AiSuggestions.png?v=20241201",
+    title: "🤖 AI-Powered Suggestions",
+    description: "Get intelligent recommendations for tab organization and productivity improvements."
+  },
+  {
+    image: "/images/SessionManager.png?v=20241201",
+    title: "💾 Session Management",
+    description: "Save and restore your tab sessions for seamless workflow continuity."
+  },
+  {
+    image: "/images/Customization.png?v=20241201",
+    title: "🎨 Enhanced Customization",
+    description: "Personalize your tab management experience with flexible customization options."
   },
   {
     title: "📘 Click For Features Deep Dive",
@@ -91,7 +106,7 @@ export function FeaturesSection() {
                 <div 
                   className="bg-gray-50 p-6 rounded-2xl shadow-md transition-transform hover:scale-105 duration-300 group cursor-pointer"
                   onClick={() => {
-                    if (index === 4) {
+                    if (index === 7) {
                       // Navigate to onboarding page for deep dive
                       router.push('/onboarding#feature-deep-dive')
                       // Scroll to the section after navigation

@@ -33,11 +33,12 @@ export default function HelpDocumentationPage() {
               <li><a href="#installation" className="text-blue-600 hover:underline">2. Installation</a></li>
               <li><a href="#keyboard-shortcuts" className="text-blue-600 hover:underline">3. Keyboard Shortcuts</a></li>
               <li><a href="#features" className="text-blue-600 hover:underline">4. Features Overview</a></li>
-              <li><a href="#tab-grouping" className="text-blue-600 hover:underline">5. Tab Grouping</a></li>
-              <li><a href="#search-tabs" className="text-blue-600 hover:underline">6. Search Tabs</a></li>
-              <li><a href="#settings" className="text-blue-600 hover:underline">7. Settings & Preferences</a></li>
-              <li><a href="#troubleshooting" className="text-blue-600 hover:underline">8. Troubleshooting</a></li>
-              <li><a href="#faq" className="text-blue-600 hover:underline">9. Frequently Asked Questions</a></li>
+              <li><a href="#ai-suggestions" className="text-blue-600 hover:underline">5. AI-Powered Suggestions</a></li>
+              <li><a href="#tab-grouping" className="text-blue-600 hover:underline">6. Tab Grouping</a></li>
+              <li><a href="#search-tabs" className="text-blue-600 hover:underline">7. Search Tabs</a></li>
+              <li><a href="#settings" className="text-blue-600 hover:underline">8. Settings & Preferences</a></li>
+              <li><a href="#troubleshooting" className="text-blue-600 hover:underline">9. Troubleshooting</a></li>
+              <li><a href="#faq" className="text-blue-600 hover:underline">10. Frequently Asked Questions</a></li>
             </ul>
           </CardContent>
         </Card>
@@ -152,6 +153,14 @@ export default function HelpDocumentationPage() {
                     <p className="text-sm text-gray-600">Search across all tabs in all windows instantly</p>
                   </div>
                 </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="h-5 w-5 text-purple-500 mt-1 text-lg">🤖</div>
+                  <div>
+                    <h4 className="font-semibold">AI-Powered Suggestions <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Pro</span></h4>
+                    <p className="text-sm text-gray-600">Get intelligent recommendations for tab organization and productivity</p>
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-4">
@@ -170,7 +179,37 @@ export default function HelpDocumentationPage() {
                     <p className="text-sm text-gray-600">Manage tabs across multiple browser windows</p>
                   </div>
                 </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="h-5 w-5 text-blue-500 mt-1 text-lg">💾</div>
+                  <div>
+                    <h4 className="font-semibold">Session Management <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Pro</span></h4>
+                    <p className="text-sm text-gray-600">Save and restore your tab sessions for seamless workflow</p>
+                  </div>
+                </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI-Powered Suggestions */}
+        <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="ai-suggestions">
+          <CardHeader>
+            <CardTitle>5. AI-Powered Suggestions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              EazyNet uses advanced AI algorithms to provide intelligent suggestions for your tabs. 
+              It analyzes your browsing history and current tabs to offer relevant and context-aware suggestions.
+            </p>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">How It Works:</h4>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Analyzes your recent tab usage</li>
+                <li>Identifies patterns and preferences</li>
+                <li>Generates relevant suggestions for your current context</li>
+                <li>Helps you discover new tabs to open</li>
+              </ul>
             </div>
           </CardContent>
         </Card>
@@ -178,7 +217,7 @@ export default function HelpDocumentationPage() {
         {/* Tab Grouping */}
         <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="tab-grouping">
           <CardHeader>
-            <CardTitle>5. Tab Grouping</CardTitle>
+            <CardTitle>6. Tab Grouping</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
@@ -211,7 +250,7 @@ export default function HelpDocumentationPage() {
         {/* Search Tabs */}
         <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="search-tabs">
           <CardHeader>
-            <CardTitle>6. Search Tabs</CardTitle>
+            <CardTitle>7. Search Tabs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
@@ -246,7 +285,7 @@ export default function HelpDocumentationPage() {
         {/* Settings */}
         <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="settings">
           <CardHeader>
-            <CardTitle>7. Settings & Preferences</CardTitle>
+            <CardTitle>8. Settings & Preferences</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
@@ -280,7 +319,7 @@ export default function HelpDocumentationPage() {
         {/* Troubleshooting */}
         <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="troubleshooting">
           <CardHeader>
-            <CardTitle>8. Troubleshooting</CardTitle>
+            <CardTitle>9. Troubleshooting</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-4">
@@ -318,7 +357,7 @@ export default function HelpDocumentationPage() {
         {/* FAQ */}
         <Card className="mb-8 bg-white/90 backdrop-blur-sm" id="faq">
           <CardHeader>
-            <CardTitle>9. Frequently Asked Questions</CardTitle>
+            <CardTitle>10. Frequently Asked Questions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>

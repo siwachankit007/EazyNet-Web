@@ -53,11 +53,18 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const [mounted, setMounted] = useState(false)
 
   const { navigateWithLoading } = useNavigationWithLoading()
   const { user, isAuthenticated, fetchUserProfile } = useAuth()
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     let ticking = false
     
     const handleScroll = () => {
@@ -65,17 +72,22 @@ export function Navigation() {
         requestAnimationFrame(() => {
           setIsScrolled(window.scrollY > 10)
           
-          // Update active section based on scroll position
-          const sections = ['hero', 'features', 'pricing', 'testimonials', 'contact']
-          for (const section of sections) {
-            const element = document.getElementById(section)
-            if (element) {
-              const rect = element.getBoundingClientRect()
-              if (rect.top <= 120 && rect.bottom >= 120) {
-                setActiveSection(section)
-                break
+          // Only update active section if we're actually scrolled down
+          if (window.scrollY > 50) {
+            const sections = ['hero', 'features', 'pricing', 'testimonials', 'contact']
+            for (const section of sections) {
+              const element = document.getElementById(section)
+              if (element) {
+                const rect = element.getBoundingClientRect()
+                if (rect.top <= 120 && rect.bottom >= 120) {
+                  setActiveSection(section)
+                  break
+                }
               }
             }
+          } else {
+            // Reset active section when at top
+            setActiveSection('')
           }
           ticking = false
         })
@@ -85,10 +97,12 @@ export function Navigation() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [mounted])
 
   // Fetch user data when user changes
   useEffect(() => {
+    if (!mounted) return
+    
     if (user) {
       
       // Check if this is an EazyNet user (has name property)
@@ -107,14 +121,15 @@ export function Navigation() {
     } else {
       // No user, clear user data
     }
-  }, [user])
+  }, [user, mounted])
 
   // Fetch user profile if not available
   useEffect(() => {
+    if (!mounted) return
     if (!user && isAuthenticated) {
       fetchUserProfile()
     }
-  }, [user, isAuthenticated, fetchUserProfile])
+  }, [user, isAuthenticated, fetchUserProfile, mounted])
 
   const handleSmoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
     e.preventDefault()
@@ -203,7 +218,7 @@ export function Navigation() {
   return (
     <nav className={`bg-white shadow-lg sticky top-0 z-50 border-b border-gray-100 transition-all duration-200 ${
       isScrolled ? 'shadow-xl backdrop-blur-sm bg-white/95' : ''
-    }`}>
+    }`} style={{ transform: 'translateZ(0)' }}>
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group" onClick={() => handlePageNavigation('/', 'logo')}>
@@ -221,26 +236,54 @@ export function Navigation() {
 
         {/* Centered Nav Links */}
         <div className="flex-1 flex justify-center">
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <NavLink href="/#features">Features</NavLink>
             <NavLink href="/#pricing">Pricing</NavLink>
-            <NavLink href="/#testimonials">Testimonials</NavLink>
-            <NavLink href="/#contact">Contact</NavLink>
-            <NavLink href="/onboarding" onClick={() => handlePageNavigation('/onboarding', 'tutorial')}>
-              Tutorial
-            </NavLink>
-            {/* Only show Dashboard link if user is authenticated */}
-            {user && (
-              <NavLink href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard')}>
-                Dashboard
-              </NavLink>
-            )}
+            <div className="hidden md:flex items-center space-x-2">
+              <NavLink href="/#testimonials">Testimonials</NavLink>
+              <NavLink href="/#contact">Contact</NavLink>
+              {mounted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="nav-link relative text-gray-700 font-medium hover:text-blue-600 transition-all duration-200 px-4 py-2 rounded-lg hover:bg-blue-50 group focus:outline-none">
+                      Tutorial
+                      <span className="absolute bottom-1 left-1/2 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-8 group-hover:left-1/2 group-hover:-translate-x-1/2 w-0"></span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="center" 
+                    sideOffset={8}
+                    className="w-48 border-0 shadow-lg"
+                    side="bottom"
+                    avoidCollisions={true}
+                    collisionPadding={8}
+                  >
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
+                      <Link href="/onboarding" onClick={() => handlePageNavigation('/onboarding', 'tutorial')}>
+                        Getting Started
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
+                      <Link href="/help-documentation" onClick={() => handlePageNavigation('/help-documentation', 'help-docs')}>
+                        Help & Documentation
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {/* Only show Dashboard link if user is authenticated */}
+              {user && (
+                <NavLink href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard')}>
+                  Dashboard
+                </NavLink>
+              )}
+            </div>
           </div>
         </div>
 
         {/* CTA & Auth Buttons */}
         <div className="flex items-center gap-4 ml-8">
-          <Button asChild className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+          <Button asChild className="hidden md:inline-flex px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
             <a
               href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb"
               target="_blank"
@@ -250,14 +293,14 @@ export function Navigation() {
             </a>
           </Button>
 
-          {/* Show Join Us button when not authenticated, or user dropdown when authenticated */}
+          {/* Show user dropdown when authenticated, no Join Us button in main header */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2 ml-4">
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0])}
+                    {user && 'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0] || 'User')}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -289,7 +332,7 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+            <Button asChild className="hidden md:inline-flex px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
               <Link href="/auth" onClick={() => handlePageNavigation('/auth', 'join-us')}>
                 Join Us
               </Link>
@@ -302,7 +345,6 @@ export function Navigation() {
             size="sm"
             className="md:hidden hover:bg-blue-50 hover:text-blue-600 transition-colors btn-enhanced"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            suppressHydrationWarning
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
@@ -361,7 +403,13 @@ export function Navigation() {
               e.preventDefault()
               navigateWithLoading('/onboarding')
             }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
-              Tutorial
+              Interactive Tutorial
+            </Link>
+            <Link href="/help-documentation" onClick={(e) => {
+              e.preventDefault()
+              navigateWithLoading('/help-documentation')
+            }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
+              Help & Documentation
             </Link>
             {/* Only show Dashboard link in mobile menu if user is authenticated */}
             {user && (
@@ -372,8 +420,8 @@ export function Navigation() {
                 Dashboard
               </Link>
             )}
-            <div className="pt-4 space-y-2">
-              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-lg transition-all btn-enhanced">
+            <div className="pt-4 space-y-3">
+              <Button asChild className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-lg transition-all rounded-xl font-semibold">
                 <a
                   href="https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc?utm_source=item-share-cb"
                   target="_blank"
@@ -390,7 +438,7 @@ export function Navigation() {
                     <User className="h-4 w-4" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
-                        {'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0])}
+                        {user && 'name' in user ? user.name : (user?.user_metadata?.name || user?.email?.split('@')[0] || 'User')}
                       </p>
                     </div>
                   </div>
@@ -417,7 +465,7 @@ export function Navigation() {
                   </button>
                 </div>
               ) : (
-                <Button asChild className="w-full px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:shadow-md transition duration-300">
+                <Button asChild className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 hover:shadow-md transition-all">
                   <Link href="/auth" onClick={(e) => {
                     e.preventDefault()
                     navigateWithLoading('/auth')
