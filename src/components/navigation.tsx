@@ -236,48 +236,46 @@ export function Navigation() {
 
         {/* Centered Nav Links */}
         <div className="flex-1 flex justify-center">
-          <div className="flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-2">
             <NavLink href="/#features">Features</NavLink>
             <NavLink href="/#pricing">Pricing</NavLink>
-            <div className="hidden md:flex items-center space-x-2">
-              <NavLink href="/#testimonials">Testimonials</NavLink>
-              <NavLink href="/#contact">Contact</NavLink>
-              {mounted && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="nav-link relative text-gray-700 font-medium hover:text-blue-600 transition-all duration-200 px-4 py-2 rounded-lg hover:bg-blue-50 group focus:outline-none">
-                      Tutorial
-                      <span className="absolute bottom-1 left-1/2 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-8 group-hover:left-1/2 group-hover:-translate-x-1/2 w-0"></span>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="center" 
-                    sideOffset={8}
-                    className="w-48 border-0 shadow-lg"
-                    side="bottom"
-                    avoidCollisions={true}
-                    collisionPadding={8}
-                  >
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
-                      <Link href="/onboarding" onClick={() => handlePageNavigation('/onboarding', 'tutorial')}>
-                        Getting Started
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
-                      <Link href="/help-documentation" onClick={() => handlePageNavigation('/help-documentation', 'help-docs')}>
-                        Help & Documentation
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {/* Only show Dashboard link if user is authenticated */}
-              {user && (
-                <NavLink href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard')}>
-                  Dashboard
-                </NavLink>
-              )}
-            </div>
+            <NavLink href="/#testimonials">Testimonials</NavLink>
+            <NavLink href="/#contact">Contact</NavLink>
+            {mounted && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="nav-link relative text-gray-700 font-medium hover:text-blue-600 transition-all duration-200 px-4 py-2 rounded-lg hover:bg-blue-50 group focus:outline-none">
+                    Tutorial
+                    <span className="absolute bottom-1 left-1/2 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-8 group-hover:left-1/2 group-hover:-translate-x-1/2 w-0"></span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="center" 
+                  sideOffset={8}
+                  className="w-48 border-0 shadow-lg"
+                  side="bottom"
+                  avoidCollisions={true}
+                  collisionPadding={8}
+                >
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
+                    <Link href="/onboarding" onClick={() => handlePageNavigation('/onboarding', 'tutorial')}>
+                      Getting Started
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 focus:bg-blue-50 focus:text-blue-600 focus:outline-none">
+                    <Link href="/help-documentation" onClick={() => handlePageNavigation('/help-documentation', 'help-docs')}>
+                      Help & Documentation
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {/* Only show Dashboard link if user is authenticated */}
+            {user && (
+              <NavLink href="/dashboard" onClick={() => handlePageNavigation('/dashboard', 'dashboard')}>
+                Dashboard
+              </NavLink>
+            )}
           </div>
         </div>
 
@@ -403,7 +401,7 @@ export function Navigation() {
               e.preventDefault()
               navigateWithLoading('/onboarding')
             }} className="block text-gray-700 font-medium hover:text-blue-600 hover:bg-blue-50 transition-all px-4 py-3 rounded-lg">
-              Interactive Tutorial
+              Getting Started
             </Link>
             <Link href="/help-documentation" onClick={(e) => {
               e.preventDefault()
