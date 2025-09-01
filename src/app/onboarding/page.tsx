@@ -222,6 +222,12 @@ export default function OnboardingPage() {
       isPro: true
     },
     {
+      title: "AI-Powered Suggestions",
+      description: "Get intelligent recommendations for tab organization, productivity improvements, and workflow optimization based on your browsing patterns.",
+      icon: "🤖",
+      isPro: true
+    },
+    {
       title: "Mapping Updates",
       description: "Allows renaming or re-mapping groups per domain for personalized workflow.",
       icon: "✏️",
@@ -391,6 +397,7 @@ export default function OnboardingPage() {
               <TableRow feature="Group Tabs by Domain" free="✔️" pro="✔️" />
               <TableRow feature="Smart Subgrouping (Path-Based)" free="—" pro="✔️" isPro />
               <TableRow feature="Automatic Tabs Grouping" free="—" pro="✔️" isPro />
+              <TableRow feature="AI-Powered Suggestions" free="—" pro="✔️" isPro />
               <TableRow feature="Mapping Updates per Domain" free="5" pro="Unlimited" />
               <TableRow feature="Tab Search & Navigation" free="✔️" pro="✔️" />
               <TableRow feature="Individual Tab Memory Management" free="10 Tabs" pro="Unlimited" />
