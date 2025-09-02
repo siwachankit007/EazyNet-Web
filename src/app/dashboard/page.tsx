@@ -10,7 +10,7 @@ import { SubscriptionManager } from "@/components/payment/subscription-manager"
 import { TrialButton } from "@/components/payment/trial-button"
 import { RouteGuard } from "@/components/route-guard"
 import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import Footer  from "@/components/footer"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 

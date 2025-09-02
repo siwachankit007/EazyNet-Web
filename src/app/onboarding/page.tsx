@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import  Footer  from "@/components/footer"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDownIcon } from "@heroicons/react/24/outline"

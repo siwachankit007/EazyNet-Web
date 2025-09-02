@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import  Footer  from "@/components/footer"
 import { ResetPasswordForm } from "@/components/reset-password-form"
 import { RouteGuard } from "@/components/route-guard"
 
