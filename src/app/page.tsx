@@ -12,7 +12,7 @@ import { CTASection } from "@/components/cta-section"
 import { FAQSection } from "@/components/faq-section"
 import { FAQSchema } from "@/components/faq-schema"
 import { ContactSection } from "@/components/contact-section"
-import { Footer } from "@/components/footer"
+import  Footer  from "@/components/footer"
 
 export default function Home() {
   return (

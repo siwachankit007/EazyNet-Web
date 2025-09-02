@@ -10,12 +10,12 @@ export function SolutionSection() {
 
       <div className="flex justify-center gap-8">
         {/* Screenshot 1 */}
-        <div className="w-80 h-64 bg-gray-200 rounded-xl shadow-inner" data-aos="zoom-in">
+        <div className="w-80 h-96 bg-gray-200 rounded-xl shadow-inner" data-aos="zoom-in">
           <Image 
-            src="/images/Home.png" 
+            src="/images/Home.png?v=20241201" 
             alt="EazyNet interface showing grouped browser tabs" 
             width={320} 
-            height={256}
+            height={384}
             className="w-full h-full object-cover rounded-xl" 
           />
         </div>

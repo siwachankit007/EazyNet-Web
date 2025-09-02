@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { SubscriptionManager } from "@/components/payment/subscription-manager"
 import { TrialButton } from "@/components/payment/trial-button"
 import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import Footer from "@/components/footer"
 import { toast } from "sonner"
 import { useLoading } from "@/components/loading-context"
 import { RouteGuard } from "@/components/route-guard"
@@ -26,118 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-// Privacy Policy Component
-function PrivacyPolicy() {
-  return (
-    <div className="prose prose-sm max-w-none">
-      <h2 className="text-2xl font-bold mb-4">Privacy Policy</h2>
-      <p className="mb-4">Last updated: January 2025</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Information We Collect</h3>
-      <p className="mb-4">EazyNet collects minimal information necessary to provide our tab management service. This includes:</p>
-      <ul className="list-disc pl-6 mb-4">
-        <li>Browser tab information (URLs, titles) for grouping and organization</li>
-        <li>User preferences and settings for the extension</li>
-        <li>Account information when you sign up (email, name)</li>
-      </ul>
-      
-      <h3 className="text-lg font-semibold mb-2">How We Use Your Information</h3>
-      <p className="mb-4">We use the collected information to:</p>
-      <ul className="list-disc pl-6 mb-4">
-        <li>Provide tab management and grouping functionality</li>
-        <li>Improve our extension features and user experience</li>
-        <li>Send important updates about our service</li>
-        <li>Provide customer support</li>
-      </ul>
-      
-      <h3 className="text-lg font-semibold mb-2">Data Security</h3>
-      <p className="mb-4">We implement industry-standard security measures to protect your data. Your tab information is processed locally in your browser and is not stored on our servers unless you explicitly choose to sync your settings.</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Third-Party Services</h3>
-      <p className="mb-4">We use trusted third-party services for authentication (Google) and analytics. These services have their own privacy policies.</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Contact Us</h3>
-      <p className="mb-4">If you have questions about this privacy policy, please contact us at <a href="mailto:eazynettabmanager@gmail.com" className="text-blue-600 underline">eazynettabmanager@gmail.com</a></p>
-    </div>
-  );
-}
 
-// Terms & Conditions Component
-function TermsAndConditions() {
-  return (
-    <div className="prose prose-sm max-w-none">
-      <h2 className="text-2xl font-bold mb-4">Terms &amp; Conditions</h2>
-      <p className="mb-4">Last updated: January 2025</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Acceptance of Terms</h3>
-      <p className="mb-4">By using EazyNet, you agree to be bound by these terms and conditions. If you do not agree to these terms, please do not use our service.</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Service Description</h3>
-      <p className="mb-4">EazyNet is a Chrome extension that helps users organize and manage browser tabs. Our service includes:</p>
-      <ul className="list-disc pl-6 mb-4">
-        <li>Automatic tab grouping by domain</li>
-        <li>Search functionality for tabs</li>
-        <li>Tab organization and management tools</li>
-        <li>Settings synchronization (Pro users)</li>
-      </ul>
-      
-      <h3 className="text-lg font-semibold mb-2">User Responsibilities</h3>
-      <p className="mb-4">As a user of EazyNet, you agree to:</p>
-      <ul className="list-disc pl-6 mb-4">
-        <li>Use the service in compliance with applicable laws</li>
-        <li>Not attempt to reverse engineer or modify the extension</li>
-        <li>Not use the service for malicious purposes</li>
-        <li>Respect intellectual property rights</li>
-      </ul>
-      
-      <h3 className="text-lg font-semibold mb-2">Limitation of Liability</h3>
-      <p className="mb-4">EazyNet is provided &quot;as is&quot; without warranties. We are not liable for any damages arising from the use of our service.</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Changes to Terms</h3>
-      <p className="mb-4">We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of updated terms.</p>
-      
-      <h3 className="text-lg font-semibold mb-2">Contact</h3>
-      <p className="mb-4">For questions about these terms, contact us at <a href="mailto:eazynettabmanager@gmail.com" className="text-blue-600 underline">eazynettabmanager@gmail.com</a></p>
-    </div>
-  );
-}
-
-// Policy Modal Component
-function PolicyModal({ isOpen, onClose, type }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  type: 'privacy' | 'terms' | null;
-}) {
-  if (!isOpen || !type) return null;
-
-  return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div 
-        className="bg-white max-w-3xl mx-auto rounded-xl shadow-lg p-8 relative overflow-y-auto max-h-[80vh] w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl leading-none"
-          aria-label="Close modal"
-          suppressHydrationWarning
-        >
-          &times;
-        </button>
-        
-        {/* Modal Content */}
-        {type === 'privacy' && <PrivacyPolicy />}
-        {type === 'terms' && <TermsAndConditions />}
-      </div>
-    </div>
-  );
-}
 
 function ProfileContent() {
   const { user, fetchUserProfile } = useAuth()
@@ -146,14 +35,6 @@ function ProfileContent() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean;
-    type: 'privacy' | 'terms' | null;
-  }>({
-    isOpen: false,
-    type: null
-  })
-
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -191,14 +72,6 @@ function ProfileContent() {
     // Default to false (assume email/password user)
     return false
   }, [userData, user])
-
-  const openModal = (type: 'privacy' | 'terms') => {
-    setModalState({ isOpen: true, type });
-  };
-
-  const closeModal = () => {
-    setModalState({ isOpen: false, type: null });
-  };
 
   const openHelpSupport = () => {
     window.open('/help-documentation', '_blank')
@@ -583,11 +456,15 @@ function ProfileContent() {
                   Help & Support
                 </Button>
                
-                <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('privacy')}>
-                  Privacy Policy
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/privacy-policy">
+                    Privacy Policy
+                  </a>
                 </Button>
-                <Button variant="ghost" className="w-full justify-start" onClick={() => openModal('terms')}>
-                  Terms of Service
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/terms-and-conditions">
+                    Terms of Service
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -613,11 +490,6 @@ function ProfileContent() {
       </main>
       
       <Footer />
-      <PolicyModal 
-        isOpen={modalState.isOpen} 
-        onClose={closeModal} 
-        type={modalState.type} 
-      />
     </div>
   )
 }
