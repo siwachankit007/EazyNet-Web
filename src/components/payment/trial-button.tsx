@@ -90,7 +90,7 @@ export function TrialButton({
         
         // Handle specific error cases
         if (error instanceof Error) {
-          if (error.message.includes('already has an active trial')) {
+          if (error.message === 'User already has an active trial') {
             toast.error('You already have an active trial')
           } else if (error.message.includes('already has an active subscription')) {
             toast.error('You already have an active subscription')
