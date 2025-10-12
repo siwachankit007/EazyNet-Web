@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
           {/* Introduction */}
           <div className="bg-blue-50 rounded-xl p-8 mb-12">
             <p className="text-gray-700 leading-relaxed text-lg font-inter">
-              At EazyNet, your privacy is extremely important to us. This Privacy Policy outlines the types of information we collect, how we use it, and your rights regarding your personal data. By using EazyNet Tab Manager, you agree to the terms outlined below.
+              At EazyNet Workspace, your privacy is extremely important to us. This Privacy Policy outlines the types of information we collect, how we use it, and your rights regarding your personal data. By using EazyNet Workspace, you agree to the terms outlined below.
             </p>
           </div>
 

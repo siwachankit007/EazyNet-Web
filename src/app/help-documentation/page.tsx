@@ -18,7 +18,7 @@ export default function HelpDocumentationPage() {
          
           <h1 className="text-4xl font-bold text-white mb-4">EazyNet Help & Documentation</h1>
           <p className="text-white/80 text-lg">
-            Complete guide to using EazyNet tab manager extension
+            Complete guide to using EazyNet Workspace extension
           </p>
         </div>
 

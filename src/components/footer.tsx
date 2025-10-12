@@ -15,8 +15,8 @@ export default function Footer() {
             <div className="flex flex-col items-start h-full">
               <div className="mb-4">
                 <Link href="/" className="flex items-center space-x-3">
-                  <Image src="/images/Logo.png" alt="EazyNet Logo" width={32} height={32} className="h-8 w-auto mr-3" />
-                  <h3 className="text-2xl font-semibold">EazyNet</h3>
+                  <Image src="/images/Logo.png" alt="EazyNet Workspace Logo" width={32} height={32} className="h-8 w-auto mr-3" />
+                  <h3 className="text-2xl font-semibold">EazyNet Workspace</h3>
                 </Link>
               </div>
               <h4 className="font-semibold text-lg text-gray-300 mb-2">Quick Links</h4>
@@ -68,7 +68,7 @@ export default function Footer() {
           </div>
           {/* Legal and Copyright Info */}
           <div className="border-t border-gray-700 pt-6 mt-6 text-center text-sm text-gray-400" >
-            <p>&copy; 2025 EazyNet. All Rights Reserved.</p>
+            <p>&copy; 2025 EazyNet Workspace. All Rights Reserved.</p>
             <a 
               href="/privacy-policy" 
               className="policy-link hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded px-1"
