@@ -17,12 +17,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EazyNet – Smart Chrome Tab Manager Extension | Organize Browser Tabs",
-  description: "EazyNet is the smartest Chrome tab manager that groups, searches, and organizes browser tabs by domain and path. Boost productivity, reduce clutter, and manage unlimited tabs efficiently.",
-  keywords: "Chrome tab manager, tab grouping extension, organize browser tabs, productivity, EazyNet, smart tab organization, browser productivity, tab management, Chrome extension, tab groups, auto grouping, smart subgrouping",
+  title: "EazyNet Workspace – Fast. Organized. Focused. | Intelligent Workspace Solution",
+  description: "EazyNet Workspace transforms tab chaos into an intelligent workspace. Fast memory management, organized AI-powered grouping, and focused productivity for power users.",
+  keywords: "workspace management, intelligent workspace, productivity tool, EazyNet Workspace, fast browser, organized tabs, focused workflow, Chrome extension, workspace intelligence, power user productivity, tab organization, memory management",
   authors: [{ name: "EazyNet Team" }],
   creator: "EazyNet Team",
-  publisher: "EazyNet",
+  publisher: "EazyNet Workspace",
   robots: {
     index: true,
     follow: true,
@@ -40,24 +40,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://eazynet.app/",
-    title: "EazyNet – Smart Chrome Tab Manager Extension | Organize Browser Tabs",
-    description: "Group, search, and manage your browser tabs like a pro. EazyNet helps boost your focus and reduce tab clutter with smart grouping and unlimited organization.",
-    siteName: "EazyNet",
+    title: "EazyNet Workspace – Fast. Organized. Focused. | Intelligent Workspace Solution",
+    description: "Transform tab chaos into an intelligent workspace. EazyNet Workspace delivers fast memory management, organized AI-powered grouping, and focused productivity for power users.",
+    siteName: "EazyNet Workspace",
     locale: "en_US",
     images: [
       {
         url: "https://eazynet.app/images/EazyNetBanner.png",
         width: 1200,
         height: 630,
-        alt: "EazyNet Chrome Tab Manager - Smart Tab Organization",
+        alt: "EazyNet Workspace - Fast. Organized. Focused. Intelligent Workspace",
         type: "image/png"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "EazyNet – Smart Chrome Tab Manager Extension",
-    description: "EazyNet helps you organize tabs and stay focused. Install now and reduce tab chaos with smart grouping.",
+    title: "EazyNet Workspace – Fast. Organized. Focused.",
+    description: "Transform tab chaos into an intelligent workspace. Fast memory management, organized AI-powered grouping, and focused productivity.",
     images: ["https://eazynet.app/images/EazyNetBanner.png"],
     creator: "@eazynet",
     site: "@eazynet"
@@ -89,8 +89,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "EazyNet",
-              "description": "Smart Chrome tab manager that groups, searches, and organizes browser tabs by domain and path",
+              "name": "EazyNet Workspace",
+              "description": "Intelligent workspace solution that transforms tab chaos into organized, fast, and focused productivity for power users",
               "url": "https://eazynet.app",
               "applicationCategory": "BrowserExtension",
               "operatingSystem": "Chrome",
@@ -102,12 +102,12 @@ export default function RootLayout({
                 "description": "Free plan with powerful features, Pro plan available for advanced features"
               },
               "featureList": [
-                "Smart Tab Grouping",
-                "Auto Tab Organization", 
-                "Tab Search & Navigation",
-                "Memory Management",
-                "Cross-device Sync",
-                "Smart Subgrouping (Pro)"
+                "Fast Memory Management",
+                "Organized AI-Powered Grouping", 
+                "Focused Workflow Intelligence",
+                "Smart Tab Search & Navigation",
+                "Cross-device Workspace Sync",
+                "Precision-Level Organization (Pro)"
               ],
               "author": {
                 "@type": "Organization",

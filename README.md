@@ -1,4 +1,15 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EazyNet Workspace - Fast. Organized. Focused.
+
+EazyNet Workspace transforms tab chaos into an intelligent workspace. Fast memory management, organized AI-powered grouping, and focused productivity for power users.
+
+## Features
+
+- **Fast Memory Management** - Intelligent workspace memory optimization
+- **Organized AI-Powered Grouping** - Precision-level organization by domain and path
+- **Focused Workflow Intelligence** - AI learns your patterns and suggests optimizations
+- **Smart Workspace Search** - Find anything in your workspace instantly
+- **Cross-Device Workspace Sync** - Your workspace follows you everywhere
+- **Workspace Sessions** - Save and restore complete workspace states
 
 ## Getting Started
 
@@ -16,18 +27,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technology Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend**: Next.js 15 with React 19
+- **Styling**: Tailwind CSS
+- **Authentication**: Supabase
+- **Deployment**: Vercel-ready
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about EazyNet Workspace:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Visit our website: [eazynet.app](https://eazynet.app)
+- Get the Chrome extension: [Chrome Web Store](https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc)
 
 ## Deploy on Vercel
 

@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink, CreditCard, Clock, CheckCircle, Crown } from "lucide-react"
 import { eazynetAPI } from "@/lib/eazynet-api"
+import { useRouter } from "next/navigation"
+import { useLoading } from "@/components/loading-context"
 
 interface UpgradeButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link'
@@ -32,6 +34,8 @@ export function UpgradeButton({
   const [isLoading, setIsLoading] = useState(false)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const { user, isPro } = useAuth()
+  const router = useRouter()
+  const { showGlobalLoading, hideGlobalLoading } = useLoading()
 
   // If user is already Pro, show Pro badge instead of upgrade button
   if (isPro && showProBadge) {
@@ -49,21 +53,43 @@ export function UpgradeButton({
   }
 
   const handleUpgrade = async () => {
+    setIsLoading(true)
+    showGlobalLoading()
+    
     if (!user) {
-      toast.error('Please sign in to upgrade')
+      // Show informative toast before redirecting
+      toast.info('Please sign in to upgrade to Pro', {
+        description: 'Redirecting to sign in page...',
+        duration: 2000
+      })
+      
+      // Add a small delay for better UX
+      setTimeout(() => {
+        router.push('/auth')
+        hideGlobalLoading()
+      }, 800)
       return
     }
 
-    setShowPaymentDialog(true)
+    // For authenticated users, show upgrade info before redirecting
+    toast.info('Redirecting to upgrade process...', {
+      description: 'Please complete the upgrade in the next step',
+      duration: 2000
+    })
+    
+    setTimeout(() => {
+      router.push('/auth')
+      hideGlobalLoading()
+    }, 800)
   }
 
   const handleContactSales = () => {
     if (!user) return
     
     // Open email client with pre-filled message
-    const subject = encodeURIComponent('EazyNet Pro Upgrade Request')
+    const subject = encodeURIComponent('EazyNet Workspace Pro Upgrade Request')
     const userName = 'name' in user ? user.name : user.email?.split('@')[0] || 'User'
-    const body = encodeURIComponent(`Hi EazyNet Team,\n\nI'm interested in upgrading to EazyNet Pro.\n\nUser: ${user.email}\nPlan: ${planType}\n\nPlease provide more information about pricing and features.\n\nBest regards,\n${userName}`)
+    const body = encodeURIComponent(`Hi EazyNet Workspace Team,\n\nI'm interested in upgrading to EazyNet Workspace Pro.\n\nUser: ${user.email}\nPlan: ${planType}\n\nPlease provide more information about pricing and features.\n\nBest regards,\n${userName}`)
     
     window.open(`mailto:eazynettabmanager@gmail.com?subject=${subject}&body=${body}`, '_blank')
     setShowPaymentDialog(false)
@@ -98,7 +124,7 @@ export function UpgradeButton({
         onClick={handleUpgrade}
         disabled={isLoading}
       >
-        {isLoading ? 'Loading...' : children}
+        {isLoading ? 'Redirecting...' : children}
       </Button>
 
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
@@ -106,7 +132,7 @@ export function UpgradeButton({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-blue-600" />
-              Upgrade to EazyNet Pro
+              Upgrade to EazyNet Workspace Pro
             </DialogTitle>
             <DialogDescription>
               Get access to advanced features and unlimited tab management

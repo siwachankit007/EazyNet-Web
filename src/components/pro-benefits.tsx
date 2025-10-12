@@ -7,22 +7,22 @@ export function ProBenefits() {
     {
       icon: <Brain className="h-5 w-5 text-purple-600" />,
       title: "Smart Subgrouping",
-      description: "Group tabs by path for deep organization"
+      description: "Precision-level workspace organization by path"
     },
     {
       icon: <Zap className="h-5 w-5 text-blue-600" />,
-      title: "Auto Grouping",
-      description: "Tabs grouped automatically by domain or path"
+      title: "Intelligent Auto-Grouping",
+      description: "Workspace groups created automatically by domain or path"
     },
     {
       icon: <Globe className="h-5 w-5 text-green-600" />,
-      title: "Sync Across Devices",
-      description: "Your groups and settings everywhere"
+      title: "Cross-Device Workspace Sync",
+      description: "Your workspace follows you everywhere"
     },
     {
       icon: <Zap className="h-5 w-5 text-orange-600" />,
-      title: "Faster Browser",
-      description: "Tab group memory management"
+      title: "Fast Memory Management",
+      description: "Intelligent workspace memory optimization"
     },
     {
       icon: <Heart className="h-5 w-5 text-red-600" />,
@@ -31,8 +31,8 @@ export function ProBenefits() {
     },
     {
       icon: <Settings className="h-5 w-5 text-gray-600" />,
-      title: "More Control",
-      description: "Individual tab memory management"
+      title: "Advanced Workspace Control",
+      description: "Individual workspace memory management"
     }
   ]
 

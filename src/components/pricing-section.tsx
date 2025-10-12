@@ -28,7 +28,7 @@ export function PricingSection() {
         </div>
 
         <div className="bg-gray-100 p-8 rounded-lg shadow-md w-full sm:w-1/2 lg:w-1/3" data-aos="fade-up" data-aos-delay="400">
-          <h3 className="text-xl font-semibold mb-4">Premium (Coming Soon)</h3>
+          <h3 className="text-xl font-semibold mb-4">Premium</h3>
           <p className="text-gray-600 mb-4">Unlock advanced features, additional customization, and more.</p>
           <p className="font-semibold text-lg">$4.99 / month</p>
           {!isPro ? (

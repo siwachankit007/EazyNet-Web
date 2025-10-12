@@ -6,7 +6,7 @@ export function ProblemSection() {
     <section id="problem" className="text-center py-24 px-6 bg-gray-50 relative">
       <Image 
         src="/images/Logo.png" 
-        alt="EazyNet Tab Manager Logo" 
+        alt="EazyNet Workspace Logo" 
         width={64} 
         height={64}
         className="mx-auto h-16 mb-6" 

@@ -224,13 +224,13 @@ export function Navigation() {
         <Link href="/" className="flex items-center space-x-3 group" onClick={() => handlePageNavigation('/', 'logo')}>
           <Image
             src="/images/Logo.png"
-            alt="EazyNet Logo"
+            alt="EazyNet Workspace Logo"
             width={32}
             height={32}
             className="h-8 w-auto transition-transform group-hover:scale-110"
           />
           <span className="font-bold text-xl text-gray-800 group-hover:text-blue-600 transition-colors">
-            EazyNet
+            EazyNet Workspace
           </span>
         </Link>
 
@@ -287,7 +287,7 @@ export function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get EazyNet
+              Get EazyNet Workspace
             </a>
           </Button>
 
@@ -425,7 +425,7 @@ export function Navigation() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get EazyNet
+                  Get EazyNet Workspace
                 </a>
               </Button>
               

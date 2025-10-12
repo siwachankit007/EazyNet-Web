@@ -11,43 +11,43 @@ import 'swiper/css/navigation'
 
 const features = [
   {
-    image: "/images/SearchTabs.png?v=20241201",
-    title: "🔍 Smart Tab Search",
-    description: "Instantly search across all tabs, windows, and groups — no matter where they're hiding."
+    image: "/images/SearchTabs.png?v=20241202",
+    title: "🔍 Smart Workspace Search",
+    description: "Instantly search across all tabs, windows, and groups — find anything in your workspace instantly."
   },
   {
-    image: "/images/Grouped Tabs.png?v=20241201",
-    title: "📂 Auto Grouping",
-    description: "Tabs are smartly grouped by domain or usage patterns."
+    image: "/images/GroupedTabs.png?v=20241201",
+    title: "📂 Intelligent Organization",
+    description: "AI-powered grouping by domain and path for precision-level workspace organization."
   },
   {
     image: "/images/UpdateDomainMapping.png?v=20241201",
-    title: "⬆️ Update Domain Mapping",
-    description: "So that you can have customized names for tab groups"
+    title: "⬆️ Custom Workspace Mapping",
+    description: "Personalize your workspace with custom group names and organization patterns."
   },
   {
-    image: "/images/SearchTabGroups.png?v=20241201",
-    title: "🔍 Search Tab Groups",
-    description: "Find any tab group and switch to any tab in real time"
+    image: "/images/SearchTabGroups.png?v=20241202",
+    title: "🔍 Workspace Group Search",
+    description: "Find and switch between workspace groups instantly for seamless workflow navigation."
   },
   {
     image: "/images/AiSuggestions.png?v=20241201",
-    title: "🤖 AI-Powered Suggestions",
-    description: "Get intelligent recommendations for tab organization and productivity improvements."
+    title: "🤖 Workspace Intelligence",
+    description: "AI learns your patterns and suggests workspace optimizations for maximum productivity."
   },
   {
     image: "/images/SessionManager.png?v=20241201",
-    title: "💾 Session Management",
-    description: "Save and restore your tab sessions for seamless workflow continuity."
+    title: "💾 Workspace Sessions",
+    description: "Save and restore complete workspace states for seamless project continuity."
   },
   {
-    image: "/images/Customization.png?v=20241201",
-    title: "🎨 Enhanced Customization",
-    description: "Personalize your tab management experience with flexible customization options."
+    image: "/images/Customization.png?v=20241202",
+    title: "🎨 Workspace Customization",
+    description: "Personalize your workspace with flexible organization patterns and visual preferences."
   },
   {
-    title: "📘 Click For Features Deep Dive",
-    description: "Understand the features in depth and become the lord of productivity"
+    title: "📘 Master Your Workspace",
+    description: "Deep dive into advanced features and become a workspace productivity expert"
   }
 ]
 

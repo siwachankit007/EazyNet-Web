@@ -1,7 +1,7 @@
 {
-  "name": "eazynet-web",
+  "name": "eazynet-workspace",
   "version": "2.0.0",
-  "description": "EazyNet SaaS Web Application - Smart Chrome Tab Manager",
+  "description": "EazyNet Workspace - Fast. Organized. Focused. Intelligent Workspace Solution",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,11 +16,13 @@
     "url": "git+https://github.com/siwachankit007/EazyNet-Web.git"
   },
   "keywords": [
-    "eazynet",
-    "chrome-extension",
-    "tab-manager",
-    "productivity",
-    "saas",
+    "eazynet-workspace",
+    "workspace-management",
+    "intelligent-workspace",
+    "productivity-tool",
+    "fast-browser",
+    "organized-tabs",
+    "focused-workflow",
     "nextjs",
     "react"
   ],

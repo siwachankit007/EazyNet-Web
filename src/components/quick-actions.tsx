@@ -53,7 +53,7 @@ export function QuickActions() {
   const actions = [
     {
       title: "Open Extension",
-      description: "Launch EazyNet tab manager (Ctrl+Shift+E)",
+      description: "Launch EazyNet Workspace (Ctrl+Shift+E)",
       icon: <Globe className="h-5 w-5" />,
       action: openExtension
     },
