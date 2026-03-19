@@ -41,6 +41,14 @@ const nextConfig: NextConfig = {
     domains: ['eazynet.app'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1 year cache for images
+    // Allow query-string cache-busters on local files in /public/images
+    // e.g. "/images/Home.png?v=20241202"
+    localPatterns: [
+      {
+        pathname: '/images/**',
+        // Intentionally omit `search` so any `?query` value is allowed.
+      },
+    ],
   },
   // Enable compression
   compress: true,
