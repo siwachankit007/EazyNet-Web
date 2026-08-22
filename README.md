@@ -1,48 +1,110 @@
-# EazyNet Workspace - Fast. Organized. Focused.
+# EazyNet Workspace
 
-EazyNet Workspace transforms tab chaos into an intelligent workspace. Fast memory management, organized AI-powered grouping, and focused productivity for power users.
+**Fast. Organized. Focused.**
+
+EazyNet Workspace turns tab chaos into an intelligent workspace: faster memory use, AI-powered grouping, and a focused workflow for power users.
+
+Live site: [eazynet.app](https://eazynet.app)  
+Chrome extension: [Chrome Web Store](https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc)
 
 ## Features
 
-- **Fast Memory Management** - Intelligent workspace memory optimization
-- **Organized AI-Powered Grouping** - Precision-level organization by domain and path
-- **Focused Workflow Intelligence** - AI learns your patterns and suggests optimizations
-- **Smart Workspace Search** - Find anything in your workspace instantly
-- **Cross-Device Workspace Sync** - Your workspace follows you everywhere
-- **Workspace Sessions** - Save and restore complete workspace states
+- **Fast memory management** — Intelligent workspace memory optimization
+- **AI-powered grouping** — Organize tabs by domain and path
+- **Focused workflow** — Learns your patterns and suggests optimizations
+- **Smart workspace search** — Find anything in your workspace instantly
+- **Cross-device sync** — Your workspace follows you
+- **Workspace sessions** — Save and restore complete workspace states
 
-## Getting Started
+## Tech stack
 
-First, run the development server:
+| Area | Version |
+| --- | --- |
+| Next.js | 16.3.2 |
+| React | 19 |
+| TypeScript | 5 |
+| Tailwind CSS | 3 |
+| Auth | Supabase (Google OAuth) |
+| Lint | ESLint 9 + `eslint-config-next` 16.3.2 |
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20 or later
+- npm 11 or later
+
+### Install
+
+```bash
+git clone https://github.com/siwachankit007/EazyNet-Web.git
+cd EazyNet-Web
+npm install
+```
+
+### Environment
+
+Copy the development template and fill in your values:
+
+```bash
+cp env.development.template .env.local
+```
+
+Required variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_EAZYNET_API_URL=https://localhost:7061
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NODE_ENV=development
+```
+
+Do not commit `.env.local`. Use Vercel (or your host) environment settings for production.
+
+### Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Technology Stack
+## Scripts
 
-- **Frontend**: Next.js 15 with React 19
-- **Styling**: Tailwind CSS
-- **Authentication**: Supabase
-- **Deployment**: Vercel-ready
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |
+| `npm run tunnel` | Expose localhost with the official `@ngrok/ngrok` CLI |
 
-## Learn More
+## Security
 
-To learn more about EazyNet Workspace:
+Dependency advisories reported on GitHub have been patched by:
 
-- Visit our website: [eazynet.app](https://eazynet.app)
-- Get the Chrome extension: [Chrome Web Store](https://chromewebstore.google.com/detail/pijkgnboinjefkploaonlbpgbnfgobpc)
+- Upgrading **Next.js** and **eslint-config-next** to **16.3.2**
+- Upgrading **Swiper** to **12.2.0** (fixes a critical advisory)
+- Removing the unpatched **`ngrok`** npm package (`extract-zip` came with it)
+- Pinning patched transitive packages with npm `overrides`
 
-## Deploy on Vercel
+After install, `npm audit` should report **0 vulnerabilities**. GitHub Dependabot will refresh after this branch is merged.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app is Vercel-ready. Set the production environment variables from `env.production.template`, then:
+
+```bash
+npm ci
+npm run build
+npm start
+```
+
+See [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md) for the full production checklist.
+
+## More docs
+
+- [Development setup](./DEVELOPMENT_SETUP.md)
+- [Backend integration](./EAZYNET_BACKEND_INTEGRATION.md)
+- [Profiles migration](./PROFILES_MIGRATION_GUIDE.md)
